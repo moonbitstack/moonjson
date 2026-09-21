@@ -1,0 +1,8 @@
+// JSON5: https://spec.json5.org/
+//
+// Everything ECMAScript 5.1 would have accepted: comments, trailing commas,
+// unquoted names, single quotes, hexadecimal and signed numbers, `Infinity`
+// and `NaN`, and strings continued across lines.
+import {
+  "moonbitstack/moonjson",
+}

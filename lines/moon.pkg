@@ -1,0 +1,9 @@
+// JSON Lines, also called NDJSON: https://jsonlines.org/
+//
+// One document to a line, separated by a line feed, each one complete. It is
+// what a log file or a stream of records is written as, because a reader can
+// start anywhere and a writer can append without rewriting.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/encoding/utf8",
+}

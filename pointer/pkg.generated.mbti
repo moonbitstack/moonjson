@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/pointer"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn escape(StringView) -> String
+
+pub fn get(Json, StringView) -> Json raise Bad
+
+pub fn has(Json, StringView) -> Bool
+
+pub fn join(ArrayView[String]) -> String
+
+pub fn tokens(StringView) -> Array[String] raise Bad
+
+// Errors
+pub(all) suberror Bad {
+  Syntax(at~ : Int)
+  Missing(token~ : String)
+  NotContainer(token~ : String)
+} derive(Eq, @debug.Debug)
+pub fn Bad::equal(Self, Self) -> Bool
+pub fn Bad::not_equal(Self, Self) -> Bool
+pub fn Bad::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+
+// Type aliases
+
+// Traits

@@ -1,0 +1,9 @@
+// JSON, RFC 8259: https://www.rfc-editor.org/rfc/rfc8259
+// and ECMA-404: https://ecma-international.org/publications-and-standards/standards/ecma-404/
+//
+// The grammar exactly: no comments, no trailing comma, no leading zero, no
+// unquoted name, no control character inside a string.
+import {
+  "moonbitstack/moonjson",
+  "moonbitstack/moonjson",
+}

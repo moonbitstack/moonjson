@@ -1,0 +1,15 @@
+// The tree every dialect reads into, the scanner they share, and the writer
+// that puts it back as strict JSON.
+//
+// JSON, RFC 8259: https://www.rfc-editor.org/rfc/rfc8259
+// JSON5: https://spec.json5.org/
+//
+// The data model is core's `Json`, not one of our own: forty files across this
+// ecosystem already speak it, and a second tree would buy nothing but
+// conversions. A number keeps the text it was written as, so a document that
+// round-trips comes back unchanged.
+import {
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/double",
+  "moonbitlang/core/string",
+}

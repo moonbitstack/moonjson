@@ -1,0 +1,9 @@
+// JSON Pointer, RFC 6901: https://www.rfc-editor.org/rfc/rfc6901
+//
+// A string that names one place in a document. `~1` stands for a slash and
+// `~0` for a tilde, in that order — undoing them the other way round would turn
+// `~01` into a slash.
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

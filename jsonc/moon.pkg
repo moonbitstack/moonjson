@@ -1,0 +1,9 @@
+// JSON with Comments — the dialect editors settled on, with no standards
+// document behind it. The reference is what VS Code accepts:
+// https://code.visualstudio.com/docs/languages/json#_json-with-comments
+//
+// JSON plus `//` and `/* */` comments and a trailing comma. Nothing else: a
+// name is still quoted, a string is still double-quoted.
+import {
+  "moonbitstack/moonjson",
+}

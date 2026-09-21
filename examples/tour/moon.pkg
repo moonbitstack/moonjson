@@ -1,0 +1,10 @@
+// A tour of the family: `moon run examples/tour`.
+pkgtype(kind: "executable")
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitstack/moonjson/jsonc",
+  "moonbitstack/moonjson/json5",
+  "moonbitstack/moonjson/lines",
+  "moonbitstack/moonjson/pointer",
+}

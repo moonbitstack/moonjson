@@ -14,6 +14,10 @@ pub fn has(Json, StringView) -> Bool
 
 pub fn join(ArrayView[String]) -> String
 
+pub fn remove(Json, StringView) -> Json raise Bad
+
+pub fn set(Json, StringView, Json) -> Json raise Bad
+
 pub fn tokens(StringView) -> Array[String] raise Bad
 
 // Errors

@@ -3,18 +3,43 @@
 The JSON family for MoonBit: one tree, several ways of writing it.
 
 ```moonbit
-let config = @json.parse("{\"host\":\"localhost\",\"port\":8080}")
-@json.write(config)              // {"host":"localhost","port":8080}
-@json.write(config, indent=2)    // over several lines
+let config = @json.loads("{\"host\":\"localhost\",\"port\":8080}")
+@json.dumps(config)              // {"host":"localhost","port":8080}
+@json.dumps(config, indent=2)    // over several lines
 
 // The same document, written the way a settings file is written.
-@jsonc.parse("{\"port\": 8080,  // the one we bound\n}")
+@jsonc.loads("{\"port\": 8080,  // the one we bound\n}")
 
 // One place in a document, named (RFC 6901).
 @pointer.get(config, "/host")    // "localhost"
 ```
 
 Run `moon run examples/tour` for the whole surface in one go.
+
+## The surface
+
+One set of verbs, the ones Python's `json`, PyYAML and `tomllib` share:
+
+|  | text → tree | bytes → tree | tree → text | tree → bytes |
+|:--:|:--:|:--:|:--:|:--:|
+| one document | `loads` | `load` | `dumps` | `dump` |
+| a stream of them | `loads_all` | `load_all` | `dumps_all` | `dump_all` |
+
+The `s` is on the form that takes or answers a string, as it is in Python. The
+plural set exists **exactly where the format defines a stream** — `lines` is a
+stream and has only those; `yaml` has both because `---` makes both meaningful;
+`json`, `jsonc` and `json5` define one document and have only the singular set.
+
+Not `from_str` and `to_string`: `to_string` already means `Show::to_string` in
+MoonBit, and `@yaml.to_string(x)` beside `x.to_string()` is a sentence that
+reads two ways.
+
+```moonbit
+// Read a file, change one field, write it back.
+let cfg = @yaml.loads(text[:])
+let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
+@yaml.dumps(cfg)
+```
 
 ## Packages
 
@@ -24,6 +49,7 @@ Run `moon run examples/tour` for the whole surface in one go.
 | `jsonc` | JSON with comments and trailing commas | what VS Code accepts |
 | `json5` | JSON5: unquoted names, single quotes, hexadecimal, `Infinity` | spec.json5.org |
 | `lines` | JSON Lines / NDJSON: one document to a line | jsonlines.org |
+| `yaml` | YAML block style, read and written — the shape a configuration file is in | YAML 1.2 |
 | `pointer` | JSON Pointer | RFC 6901 |
 | `moonjson` | The scanner the dialects share, the writer, and `Flavor` | — |
 
@@ -38,10 +64,10 @@ what it does at the edges — how deep the nesting may go, what a lone surrogate
 means, what a repeated member name means — and every reader takes one:
 
 ```moonbit
-@json.parse(text)                                    // strict JSON
-@jsonc.parse(text)                                   // the same, plus comments
-@json.parse(text, flavor=@moonjson.Flavor::new(depth=100))
-@json.parse(text, flavor={ ..@moonjson.strict, duplicates: Reject })
+@json.loads(text)                                    // strict JSON
+@jsonc.loads(text)                                   // the same, plus comments
+@json.loads(text, flavor=@moonjson.Flavor::new(depth=100))
+@json.loads(text, flavor={ ..@moonjson.strict, duplicates: Reject })
 ```
 
 Two layers, the later overriding the earlier: **the dialect's preset < the
@@ -55,10 +81,10 @@ A dialect is chosen per use site rather than per call, so the record is where it
 belongs. Writing is the other way round, so its three settings are arguments:
 
 ```moonbit
-@json.write(value)                      // compact
-@json.write(value, indent=2)            // over several lines
-@json.write(value, ascii=true)          // escape everything above U+007E
-@json.write(value, sort=true)           // members in order of name
+@json.dumps(value)                      // compact
+@json.dumps(value, indent=2)            // over several lines
+@json.dumps(value, ascii=true)          // escape everything above U+007E
+@json.dumps(value, sort=true)           // members in order of name
 ```
 
 ### The defaults, and where they come from
@@ -91,7 +117,7 @@ Reading raises `Malformed`, which says what went wrong and where — offset, lin
 and column:
 
 ```moonbit
-try @json.parse(source) catch {
+try @json.loads(source) catch {
   e => println("line \{e.at().line}, column \{e.at().column}")
 }
 ```

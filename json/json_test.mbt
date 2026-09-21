@@ -106,7 +106,7 @@ test "the grammar is exactly RFC 8259" {
   for case in cases {
     let (text, ok) = case
     let parsed = try {
-      @json.parse(text) |> ignore
+      @json.loads(text) |> ignore
       true
     } catch {
       _ => false
@@ -129,14 +129,14 @@ test "a lone surrogate is refused" {
     text in [
       "[\"\\uD800\"]", "[\"\\uDEAD\"]", "[\"\\uD800a\"]", "[\"\\uD800\\uD800\"]",
     ] {
-    try @json.parse(text) |> ignore catch {
+    try @json.loads(text) |> ignore catch {
       e => assert_true(e is BadEscape(_))
     } noraise {
       _ => fail("\{text} was accepted")
     }
   }
   // A whole pair is a character and is accepted.
-  assert_eq(@json.write(@json.parse("[\"\\uD834\\uDD1E\"]")), "[\"\u{1D11E}\"]")
+  assert_eq(@json.dumps(@json.loads("[\"\\uD834\\uDD1E\"]")), "[\"\u{1D11E}\"]")
 }
 
 ///|
@@ -149,12 +149,10 @@ test "a canonical document round-trips exactly" {
     "[1234567890123456789012345678901234567890]", "{\"\":\"empty name\"}",
   ]
   for text in cases {
-    assert_eq(@json.write(@json.parse(text)), text)
+    assert_eq(@json.dumps(@json.loads(text)), text)
     assert_eq(
-      @json.write_bytes(
-        @json.parse_bytes(@json.write_bytes(@json.parse(text))[:]),
-      ),
-      @json.write_bytes(@json.parse(text)),
+      @json.dump(@json.load(@json.dump(@json.loads(text))[:])),
+      @json.dump(@json.loads(text)),
     )
   }
 }
@@ -163,16 +161,16 @@ test "a canonical document round-trips exactly" {
 /// What the tree actually holds, since a parser that accepts everything and
 /// builds nothing would pass the table above.
 test "values come out as themselves" {
-  assert_eq(@json.parse("null"), Json::null())
-  assert_eq(@json.parse("true"), Json::boolean(true))
-  assert_eq(@json.parse("[1,2]"), [1.0, 2.0] |> Json::array)
-  assert_eq(@json.parse("\"hi\""), Json::string("hi"))
-  assert_eq(@json.parse("\"\\u00e9\""), Json::string("é"))
+  assert_eq(@json.loads("null"), Json::null())
+  assert_eq(@json.loads("true"), Json::boolean(true))
+  assert_eq(@json.loads("[1,2]"), [1.0, 2.0] |> Json::array)
+  assert_eq(@json.loads("\"hi\""), Json::string("hi"))
+  assert_eq(@json.loads("\"\\u00e9\""), Json::string("é"))
   assert_eq(
-    @json.parse("\"\\t\\n\\r\\b\\f\\/\\\\\""),
+    @json.loads("\"\\t\\n\\r\\b\\f\\/\\\\\""),
     Json::string("\t\n\r\u{08}\u{0C}/\\"),
   )
-  match @json.parse("{\"a\":[1],\"b\":{}}") {
+  match @json.loads("{\"a\":[1],\"b\":{}}") {
     Object(members) => {
       assert_eq(members.length(), 2)
       assert_true(members.get("a") is Some(Array(_)))
@@ -181,7 +179,7 @@ test "values come out as themselves" {
   }
   // A later member of the same name replaces an earlier one, which is what
   // every implementation does and what RFC 8259 §4 permits.
-  match @json.parse("{\"a\":1,\"a\":2}") {
+  match @json.loads("{\"a\":1,\"a\":2}") {
     Object(members) =>
       assert_eq(members.get("a"), Some(Json::number(2.0, repr="2")))
     _ => fail("an object did not parse as one")
@@ -191,7 +189,7 @@ test "values come out as themselves" {
 ///|
 /// An error has to say where, or it is only half an error.
 test "a failure names the line and the column" {
-  try @json.parse("{\n  \"a\": 1,\n  \"b\": ?\n}") |> ignore catch {
+  try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") |> ignore catch {
     e => {
       let spot = e.at()
       assert_eq(spot.line, 3)
@@ -201,12 +199,12 @@ test "a failure names the line and the column" {
   } noraise {
     _ => fail("a bare question mark was accepted")
   }
-  try @json.parse("[1, 2") |> ignore catch {
+  try @json.loads("[1, 2") |> ignore catch {
     e => assert_true(e is Truncated(_))
   } noraise {
     _ => fail("a truncated array was accepted")
   }
-  try @json.parse("[1] [2]") |> ignore catch {
+  try @json.loads("[1] [2]") |> ignore catch {
     e => assert_eq(e.at().at, 4)
   } noraise {
     _ => fail("two documents were read as one")
@@ -224,7 +222,7 @@ test "nesting is bounded" {
   for _ in 0..<600 {
     deep.write_char(']')
   }
-  try @json.parse(deep.to_string()) |> ignore catch {
+  try @json.loads(deep.to_string()) |> ignore catch {
     e => assert_true(e is TooDeep(_))
   } noraise {
     _ => fail("six hundred levels were accepted")
@@ -237,22 +235,22 @@ test "nesting is bounded" {
   for _ in 0..<400 {
     fine.write_char(']')
   }
-  @json.parse(fine.to_string()) |> ignore
+  @json.loads(fine.to_string()) |> ignore
 }
 
 ///|
 /// Pretty-printing, and the bytes face.
 test "indent and bytes" {
-  let value = @json.parse("{\"a\":[1,2],\"b\":{}}")
+  let value = @json.loads("{\"a\":[1,2],\"b\":{}}")
   assert_eq(
-    @json.write(value, indent=2),
+    @json.dumps(value, indent=2),
     "{\n  \"a\": [\n    1,\n    2\n  ],\n  \"b\": {}\n}",
   )
-  assert_eq(@json.write_bytes(value), b"{\"a\":[1,2],\"b\":{}}")
-  assert_eq(@json.parse_bytes(b"[1,2]"[:]), @json.parse("[1,2]"))
+  assert_eq(@json.dump(value), b"{\"a\":[1,2],\"b\":{}}")
+  assert_eq(@json.load(b"[1,2]"[:]), @json.loads("[1,2]"))
   // A number a double cannot hold is written back as it came.
   assert_eq(
-    @json.write(@json.parse("[1e400,-1e400,1e-400]")),
+    @json.dumps(@json.loads("[1e400,-1e400,1e-400]")),
     "[1e400,-1e400,1e-400]",
   )
 }

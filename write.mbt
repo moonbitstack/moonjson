@@ -12,7 +12,7 @@
 /// and written again is unchanged. Only a number with no such text is formatted,
 /// and a number that is not finite — which JSON5 can produce and JSON cannot
 /// write — becomes `null`, as every JavaScript implementation does.
-pub fn write(
+pub fn dumps(
   value : Json,
   indent? : Int = 0,
   ascii? : Bool = false,
@@ -25,13 +25,13 @@ pub fn write(
 
 ///|
 /// The same, as UTF-8 bytes — the form a body goes onto a wire in.
-pub fn write_bytes(
+pub fn dump(
   value : Json,
   indent? : Int = 0,
   ascii? : Bool = false,
   sort? : Bool = false,
 ) -> Bytes {
-  @utf8.encode(write(value, indent~, ascii~, sort~)[:])
+  @utf8.encode(dumps(value, indent~, ascii~, sort~)[:])
 }
 
 ///|

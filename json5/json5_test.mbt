@@ -20,7 +20,7 @@ let showcase : String =
 
 ///|
 test "the JSON5 showcase reads as itself" {
-  let doc = @json5.parse(showcase[:])
+  let doc = @json5.loads(showcase[:])
   match doc {
     Object(members) => {
       assert_eq(members.length(), 10)
@@ -83,14 +83,14 @@ test "each extra, and what strict JSON says to it" {
   ]
   for case in cases {
     let (json5, strict) = case
-    assert_eq(@json5.write(@json5.parse(json5)), strict)
-    try @moonjson.read(json5[:], @moonjson.strict) |> ignore catch {
+    assert_eq(@json5.dumps(@json5.loads(json5)), strict)
+    try @moonjson.loads(json5[:], @moonjson.strict) |> ignore catch {
       _ => ()
     } noraise {
       _ =>
         // A few of these are valid JSON too; the ones that are must agree.
         assert_eq(
-          @json5.write(@moonjson.read(json5[:], @moonjson.strict)),
+          @json5.dumps(@moonjson.loads(json5[:], @moonjson.strict)),
           strict,
         )
     }
@@ -102,7 +102,7 @@ test "each extra, and what strict JSON says to it" {
 /// cannot be written back as JSON. It becomes `null`, which is what every
 /// JavaScript engine writes, rather than something that will not parse.
 test "the values JSON cannot write become null" {
-  let doc = @json5.parse("{inf:Infinity,ninf:-Infinity,nan:NaN}")
+  let doc = @json5.loads("{inf:Infinity,ninf:-Infinity,nan:NaN}")
   match doc {
     Object(members) => {
       assert_true(members.get("inf") is Some(Number(_, ..)))
@@ -110,7 +110,7 @@ test "the values JSON cannot write become null" {
     }
     _ => fail("the document did not parse as an object")
   }
-  assert_eq(@json5.write(doc), "{\"inf\":null,\"ninf\":null,\"nan\":null}")
+  assert_eq(@json5.dumps(doc), "{\"inf\":null,\"ninf\":null,\"nan\":null}")
 }
 
 ///|
@@ -121,7 +121,7 @@ test "JSON5 is not everything" {
     "[1 2]", "{:1}", "['\\1']", "[Infinit]", "[+]", "[.]",
   ]
   for text in bad {
-    try @json5.parse(text) |> ignore catch {
+    try @json5.loads(text) |> ignore catch {
       _ => ()
     } noraise {
       _ => fail("\{text} was accepted")
@@ -133,7 +133,7 @@ test "JSON5 is not everything" {
 /// The extra whitespace of ECMAScript, which JSON5 §2 inherits.
 test "JSON5 whitespace" {
   assert_eq(
-    @json5.write(@json5.parse("\u{FEFF}[\u{00A0}1\u{2028},\u{2029}2\u{000B}]")),
+    @json5.dumps(@json5.loads("\u{FEFF}[\u{00A0}1\u{2028},\u{2029}2\u{000B}]")),
     "[1,2]",
   )
 }

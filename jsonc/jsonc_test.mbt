@@ -18,9 +18,9 @@ let settings : String =
 
 ///|
 test "a settings file reads, comments and all" {
-  let doc = @jsonc.parse(settings[:])
+  let doc = @jsonc.loads(settings[:])
   assert_eq(
-    @jsonc.write(doc),
+    @jsonc.dumps(doc),
     "{\"compilerOptions\":{\"target\":\"es2022\",\"strict\":true,\"lib\":[\"dom\",\"es2022\"]},\"exclude\":[\"node_modules\"]}",
   )
 }
@@ -41,11 +41,11 @@ test "comments and trailing commas, and no more" {
   ]
   for case in good {
     let (text, want) = case
-    assert_eq(@jsonc.write(@jsonc.parse(text)), want)
+    assert_eq(@jsonc.dumps(@jsonc.loads(text)), want)
   }
   let bad = ["{a:1}", "['x']", "[+1]", "[.5]", "[0x1]", "[/* unclosed", "[1,,]"]
   for text in bad {
-    try @jsonc.parse(text) |> ignore catch {
+    try @jsonc.loads(text) |> ignore catch {
       _ => ()
     } noraise {
       _ => fail("\{text} was accepted")
@@ -58,7 +58,7 @@ test "comments and trailing commas, and no more" {
 /// anything.
 test "strict JSON refuses what this accepts" {
   for text in ["[1] // after", "[1,2,]", "{\"a\":1,}", "/* c */ [1]"] {
-    try @moonjson.read(text[:], @moonjson.strict) |> ignore catch {
+    try @moonjson.loads(text[:], @moonjson.strict) |> ignore catch {
       _ => ()
     } noraise {
       _ => fail("strict JSON accepted \{text}")
@@ -69,7 +69,7 @@ test "strict JSON refuses what this accepts" {
 ///|
 /// A comment is discarded, so the position of what follows must still be right.
 test "a failure after a comment names the right place" {
-  try @jsonc.parse("// one\n// two\n[1, ?]") |> ignore catch {
+  try @jsonc.loads("// one\n// two\n[1, ?]") |> ignore catch {
     e => {
       let spot = e.at()
       assert_eq(spot.line, 3)
@@ -82,10 +82,10 @@ test "a failure after a comment names the right place" {
 
 ///|
 test "bytes in and out" {
-  assert_eq(@jsonc.parse_bytes(b"[1] // c"[:]), @jsonc.parse("[1]"))
-  assert_eq(@jsonc.write_bytes(@jsonc.parse("[1,]")), b"[1]")
+  assert_eq(@jsonc.load(b"[1] // c"[:]), @jsonc.loads("[1]"))
+  assert_eq(@jsonc.dump(@jsonc.loads("[1,]")), b"[1]")
   assert_eq(
-    @jsonc.write(@jsonc.parse("{\"a\":1,}"), indent=2),
+    @jsonc.dumps(@jsonc.loads("{\"a\":1,}"), indent=2),
     "{\n  \"a\": 1\n}",
   )
 }

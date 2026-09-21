@@ -8,7 +8,7 @@
 /// and — where the dialect allows them — comments, is [`Trailing`], not silently
 /// ignored. A parser that stops at the first value turns a truncated file into a
 /// plausible one.
-pub fn read(input : StringView, flavor : Flavor) -> Json raise Malformed {
+pub fn loads(input : StringView, flavor : Flavor) -> Json raise Malformed {
   let r = { src: input, flavor, i: 0, }
   r.space()
   let value = r.value(0)
@@ -24,7 +24,7 @@ pub fn read(input : StringView, flavor : Flavor) -> Json raise Malformed {
 /// A leading byte-order mark is skipped by default. RFC 8259 §8.1 forbids
 /// writing one and says nothing about refusing to read one, and refusing would
 /// mean rejecting half the files Windows tooling produces.
-pub fn read_bytes(
+pub fn load(
   input : BytesView,
   flavor : Flavor,
   bom? : Bool = true,
@@ -32,7 +32,7 @@ pub fn read_bytes(
   let text = @utf8.decode(input, ignore_bom=bom) catch {
     _ => raise BadUtf8({ at: 0, line: 1, column: 1, })
   }
-  read(text[:], flavor)
+  loads(text[:], flavor)
 }
 
 ///|

@@ -20,7 +20,7 @@ let doc : String =
 ///|
 /// Every pointer RFC 6901 §5 prints, against the document it prints them for.
 test "the RFC 6901 examples" {
-  let tree = @json.parse(doc[:])
+  let tree = @json.loads(doc[:])
   let cases = [
     ("/foo", "[\"bar\",\"baz\"]"),
     ("/foo/0", "\"bar\""),
@@ -37,7 +37,7 @@ test "the RFC 6901 examples" {
   ]
   for case in cases {
     let (path, want) = case
-    assert_eq(@json.write(@pointer.get(tree, path)), want)
+    assert_eq(@json.dumps(@pointer.get(tree, path)), want)
     assert_true(@pointer.has(tree, path))
   }
   // The empty pointer names the whole document.
@@ -72,7 +72,7 @@ test "splitting a pointer" {
 ///|
 /// What a pointer must refuse, and with what said about it.
 test "a pointer that leads nowhere" {
-  let tree = @json.parse("{\"a\":[10,20],\"b\":{\"c\":null},\"n\":1}")
+  let tree = @json.loads("{\"a\":[10,20],\"b\":{\"c\":null},\"n\":1}")
   let missing = ["/z", "/a/2", "/a/-", "/a/01", "/a/x", "/b/z", "/a/0/x"]
   for path in missing {
     assert_false(@pointer.has(tree, path))
@@ -115,9 +115,9 @@ test "a pointer that leads nowhere" {
 /// An array index is decimal with no leading zero (RFC 6901 §4), so `01` is not
 /// `1` and a name that looks like a number is still not an index.
 test "array indices are strict" {
-  let tree = @json.parse("[10,20,30]")
-  assert_eq(@json.write(@pointer.get(tree, "/0")), "10")
-  assert_eq(@json.write(@pointer.get(tree, "/2")), "30")
+  let tree = @json.loads("[10,20,30]")
+  assert_eq(@json.dumps(@pointer.get(tree, "/0")), "10")
+  assert_eq(@json.dumps(@pointer.get(tree, "/2")), "30")
   for path in ["/00", "/01", "/+1", "/-1", "/1.0", "/ 1", "/1 ", "/"] {
     assert_false(@pointer.has(tree, path))
   }

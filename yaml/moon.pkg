@@ -1,0 +1,16 @@
+// YAML, https://yaml.org/spec/1.2.2/ — read and written as the same `Json` tree
+// every other reader here produces, because YAML 1.2 is a superset of JSON.
+//
+// Block style: mappings, sequences, nesting by indentation, plain and quoted
+// scalars, comments. That is the shape a configuration file is written in.
+// Anchors, aliases, tags, flow style, block scalars and multi-document streams
+// are tracked and not here yet; the reader refuses what it does not understand
+// rather than guessing.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/encoding/utf8",
+}
+
+import {
+  "moonbitstack/moonjson/yaml",
+} for "test"

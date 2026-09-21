@@ -8,7 +8,7 @@
 /// with one, and refusing it would make a reader fail on its own writer's
 /// output. A carriage return before the line feed is also tolerated, because
 /// half the tools that produce these files run on Windows.
-pub fn parse(
+pub fn loads_all(
   input : StringView,
   flavor? : @moonjson.Flavor = @moonjson.strict,
 ) -> Array[Json] raise @moonjson.Malformed {
@@ -24,7 +24,7 @@ pub fn parse(
       }
       let line = input[start:end]
       if !line.is_blank() {
-        out.push(@moonjson.read(line, flavor))
+        out.push(@moonjson.loads(line, flavor))
       }
       start = i + 1
     }
@@ -35,7 +35,7 @@ pub fn parse(
 
 ///|
 /// The same, from bytes.
-pub fn parse_bytes(
+pub fn load_all(
   input : BytesView,
   flavor? : @moonjson.Flavor = @moonjson.strict,
   bom? : Bool = true,
@@ -43,7 +43,7 @@ pub fn parse_bytes(
   let text = @utf8.decode(input, ignore_bom=bom) catch {
     _ => raise @moonjson.BadUtf8({ at: 0, line: 1, column: 1, })
   }
-  parse(text[:], flavor~)
+  loads_all(text[:], flavor~)
 }
 
 ///|
@@ -51,14 +51,14 @@ pub fn parse_bytes(
 ///
 /// Every line ends in one, including the last: a file that ends without it
 /// cannot be appended to safely, which is the format's whole purpose.
-pub fn write(
+pub fn dumps_all(
   values : ArrayView[Json],
   ascii? : Bool = false,
   sort? : Bool = false,
 ) -> String {
   let out = StringBuilder()
   for value in values {
-    out.write_string(@moonjson.write(value, ascii~, sort~))
+    out.write_string(@moonjson.dumps(value, ascii~, sort~))
     out.write_char('\n')
   }
   out.to_string()
@@ -66,10 +66,10 @@ pub fn write(
 
 ///|
 /// The same, as UTF-8 bytes.
-pub fn write_bytes(
+pub fn dump_all(
   values : ArrayView[Json],
   ascii? : Bool = false,
   sort? : Bool = false,
 ) -> Bytes {
-  @utf8.encode(write(values, ascii~, sort~)[:])
+  @utf8.encode(dumps_all(values, ascii~, sort~)[:])
 }

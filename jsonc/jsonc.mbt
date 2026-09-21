@@ -7,21 +7,21 @@
 /// This is what `tsconfig.json` and `settings.json` are written in. Comments are
 /// discarded — the tree has nowhere to put them — so writing the result back out
 /// loses them.
-pub fn parse(
+pub fn loads(
   input : StringView,
   flavor? : @moonjson.Flavor = @moonjson.commented,
 ) -> Json raise @moonjson.Malformed {
-  @moonjson.read(input, flavor)
+  @moonjson.loads(input, flavor)
 }
 
 ///|
 /// The same, from the UTF-8 bytes a body arrives as.
-pub fn parse_bytes(
+pub fn load(
   input : BytesView,
   flavor? : @moonjson.Flavor = @moonjson.commented,
   bom? : Bool = true,
 ) -> Json raise @moonjson.Malformed {
-  @moonjson.read_bytes(input, flavor, bom~)
+  @moonjson.load(input, flavor, bom~)
 }
 
 ///|
@@ -32,22 +32,22 @@ pub fn parse_bytes(
 /// `ensure_ascii` does, though unlike Python's it is off by default, because a
 /// UTF-8 body is the normal case now. `sort` writes members in order of name
 /// instead of the order they were read in, which is what a diff wants.
-pub fn write(
+pub fn dumps(
   value : Json,
   indent? : Int = 0,
   ascii? : Bool = false,
   sort? : Bool = false,
 ) -> String {
-  @moonjson.write(value, indent~, ascii~, sort~)
+  @moonjson.dumps(value, indent~, ascii~, sort~)
 }
 
 ///|
 /// The same, as the UTF-8 bytes a body goes out as.
-pub fn write_bytes(
+pub fn dump(
   value : Json,
   indent? : Int = 0,
   ascii? : Bool = false,
   sort? : Bool = false,
 ) -> Bytes {
-  @moonjson.write_bytes(value, indent~, ascii~, sort~)
+  @moonjson.dump(value, indent~, ascii~, sort~)
 }

@@ -8,19 +8,17 @@ import {
 // Values
 pub let commented : Flavor
 
-pub let depth_limit : Int
-
 pub fn read(StringView, Flavor) -> Json raise Malformed
 
-pub fn read_bytes(BytesView, Flavor) -> Json raise Malformed
+pub fn read_bytes(BytesView, Flavor, bom? : Bool) -> Json raise Malformed
 
 pub let relaxed : Flavor
 
 pub let strict : Flavor
 
-pub fn write(Json, indent? : Int) -> String
+pub fn write(Json, indent? : Int, ascii? : Bool, sort? : Bool) -> String
 
-pub fn write_bytes(Json, indent? : Int) -> Bytes
+pub fn write_bytes(Json, indent? : Int, ascii? : Bool, sort? : Bool) -> Bytes
 
 // Errors
 pub(all) suberror Malformed {
@@ -31,6 +29,7 @@ pub(all) suberror Malformed {
   Trailing(At)
   TooDeep(At)
   BadUtf8(At)
+  Repeated(At, String)
 } derive(Eq, @debug.Debug)
 pub fn Malformed::at(Self) -> At
 pub fn Malformed::equal(Self, Self) -> Bool
@@ -47,6 +46,15 @@ pub fn At::equal(Self, Self) -> Bool
 pub fn At::not_equal(Self, Self) -> Bool
 pub fn At::to_repr(Self) -> @debug.Repr
 
+pub(all) enum Duplicates {
+  Last
+  First
+  Reject
+} derive(Eq, @debug.Debug)
+pub fn Duplicates::equal(Self, Self) -> Bool
+pub fn Duplicates::not_equal(Self, Self) -> Bool
+pub fn Duplicates::to_repr(Self) -> @debug.Repr
+
 pub(all) struct Flavor {
   comments : Bool
   trailing_commas : Bool
@@ -55,8 +63,12 @@ pub(all) struct Flavor {
   extra_numbers : Bool
   extra_escapes : Bool
   extra_space : Bool
+  depth : Int
+  surrogates : Bool
+  duplicates : Duplicates
 } derive(Eq, @debug.Debug)
 pub fn Flavor::equal(Self, Self) -> Bool
+pub fn Flavor::new(comments? : Bool, trailing_commas? : Bool, unquoted_keys? : Bool, single_quotes? : Bool, extra_numbers? : Bool, extra_escapes? : Bool, extra_space? : Bool, depth? : Int, surrogates? : Bool, duplicates? : Duplicates) -> Self
 pub fn Flavor::not_equal(Self, Self) -> Bool
 pub fn Flavor::to_repr(Self) -> @debug.Repr
 

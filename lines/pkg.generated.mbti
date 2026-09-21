@@ -6,13 +6,13 @@ import {
 }
 
 // Values
-pub fn parse(StringView) -> Array[Json] raise @moonjson.Malformed
+pub fn parse(StringView, flavor? : @moonjson.Flavor) -> Array[Json] raise @moonjson.Malformed
 
-pub fn parse_bytes(BytesView) -> Array[Json] raise @moonjson.Malformed
+pub fn parse_bytes(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> Array[Json] raise @moonjson.Malformed
 
-pub fn write(ArrayView[Json]) -> String
+pub fn write(ArrayView[Json], ascii? : Bool, sort? : Bool) -> String
 
-pub fn write_bytes(ArrayView[Json]) -> Bytes
+pub fn write_bytes(ArrayView[Json], ascii? : Bool, sort? : Bool) -> Bytes
 
 // Errors
 

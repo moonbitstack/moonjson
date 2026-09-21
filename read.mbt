@@ -21,8 +21,15 @@ pub fn read(input : StringView, flavor : Flavor) -> Json raise Malformed {
 
 ///|
 /// Read one document from bytes, which is how one arrives over a wire.
-pub fn read_bytes(input : BytesView, flavor : Flavor) -> Json raise Malformed {
-  let text = @utf8.decode(input) catch {
+/// A leading byte-order mark is skipped by default. RFC 8259 §8.1 forbids
+/// writing one and says nothing about refusing to read one, and refusing would
+/// mean rejecting half the files Windows tooling produces.
+pub fn read_bytes(
+  input : BytesView,
+  flavor : Flavor,
+  bom? : Bool = true,
+) -> Json raise Malformed {
+  let text = @utf8.decode(input, ignore_bom=bom) catch {
     _ => raise BadUtf8({ at: 0, line: 1, column: 1, })
   }
   read(text[:], flavor)
@@ -136,7 +143,7 @@ fn is_extra_space(c : Int) -> Bool {
 
 ///|
 fn Reader::value(self : Reader, depth : Int) -> Json raise Malformed {
-  if depth > depth_limit {
+  if depth > self.flavor.depth {
     raise TooDeep(self.spot(self.i))
   }
   match self.here() {
@@ -203,7 +210,12 @@ fn Reader::object(self : Reader, depth : Int) -> Json raise Malformed {
     }
     self.i += 1
     self.space()
-    out[key] = self.value(depth + 1)
+    let value = self.value(depth + 1)
+    match (out.get(key), self.flavor.duplicates) {
+      (Some(_), First) => ()
+      (Some(_), Reject) => raise Repeated(self.spot(self.i), key)
+      _ => out[key] = value
+    }
     self.space()
     match self.here() {
       0x2C => {
@@ -387,15 +399,24 @@ fn Reader::unicode(self : Reader, start : Int) -> Char raise Malformed {
     return hi.unsafe_to_char()
   }
   if hi >= 0xDC00 {
+    if self.flavor.surrogates {
+      return replacement
+    }
     raise BadEscape(self.spot(start))
   }
   if self.here() != 0x5C || self.peek(self.i + 1) != 0x75 {
+    if self.flavor.surrogates {
+      return replacement
+    }
     raise BadEscape(self.spot(start))
   }
   let pair = self.i
   self.i += 2
   let lo = self.quad(pair)
   if lo < 0xDC00 || lo > 0xDFFF {
+    if self.flavor.surrogates {
+      return replacement
+    }
     raise BadEscape(self.spot(pair))
   }
   (0x10000 + (hi - 0xD800) * 0x400 + (lo - 0xDC00)).unsafe_to_char()
@@ -592,3 +613,8 @@ fn Reader::hex_number(
   }
   Json::number(if signed { -value } else { value })
 }
+
+///|
+/// What a lone half of a surrogate pair becomes when the dialect tolerates one:
+/// U+FFFD, the replacement character, which is what Go's reader substitutes.
+let replacement : Char = '\u{FFFD}'

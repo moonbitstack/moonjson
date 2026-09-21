@@ -12,20 +12,37 @@
 /// and written again is unchanged. Only a number with no such text is formatted,
 /// and a number that is not finite — which JSON5 can produce and JSON cannot
 /// write — becomes `null`, as every JavaScript implementation does.
-pub fn write(value : Json, indent? : Int = 0) -> String {
+pub fn write(
+  value : Json,
+  indent? : Int = 0,
+  ascii? : Bool = false,
+  sort? : Bool = false,
+) -> String {
   let out = StringBuilder()
-  put(out, value, indent, 0)
+  put(out, value, indent, 0, ascii, sort)
   out.to_string()
 }
 
 ///|
 /// The same, as UTF-8 bytes — the form a body goes onto a wire in.
-pub fn write_bytes(value : Json, indent? : Int = 0) -> Bytes {
-  @utf8.encode(write(value, indent~)[:])
+pub fn write_bytes(
+  value : Json,
+  indent? : Int = 0,
+  ascii? : Bool = false,
+  sort? : Bool = false,
+) -> Bytes {
+  @utf8.encode(write(value, indent~, ascii~, sort~)[:])
 }
 
 ///|
-fn put(out : StringBuilder, value : Json, indent : Int, level : Int) -> Unit {
+fn put(
+  out : StringBuilder,
+  value : Json,
+  indent : Int,
+  level : Int,
+  ascii : Bool,
+  sort : Bool,
+) -> Unit {
   match value {
     Null => out.write_string("null")
     True => out.write_string("true")
@@ -40,7 +57,7 @@ fn put(out : StringBuilder, value : Json, indent : Int, level : Int) -> Unit {
             out.write_string(n.to_string())
           }
       }
-    String(s) => quote(out, s[:])
+    String(s) => quote(out, s[:], ascii)
     Array(items) => {
       if items.length() == 0 {
         out.write_string("[]")
@@ -52,7 +69,7 @@ fn put(out : StringBuilder, value : Json, indent : Int, level : Int) -> Unit {
           out.write_char(',')
         }
         newline(out, indent, level + 1)
-        put(out, item, indent, level + 1)
+        put(out, item, indent, level + 1, ascii, sort)
       }
       newline(out, indent, level)
       out.write_char(']')
@@ -63,19 +80,26 @@ fn put(out : StringBuilder, value : Json, indent : Int, level : Int) -> Unit {
         return
       }
       out.write_char('{')
+      let names : Array[String] = []
+      for name, _ in members {
+        names.push(name)
+      }
+      if sort {
+        names.sort()
+      }
       let mut first = true
-      for name, field in members {
+      for name in names {
         if !first {
           out.write_char(',')
         }
         first = false
         newline(out, indent, level + 1)
-        quote(out, name[:])
+        quote(out, name[:], ascii)
         out.write_char(':')
         if indent > 0 {
           out.write_char(' ')
         }
-        put(out, field, indent, level + 1)
+        put(out, members.get(name).unwrap(), indent, level + 1, ascii, sort)
       }
       newline(out, indent, level)
       out.write_char('}')
@@ -100,7 +124,7 @@ fn newline(out : StringBuilder, indent : Int, level : Int) -> Unit {
 /// characters. The two-character forms are used where they exist because they
 /// are shorter and what a reader expects to see; everything else below U+0020
 /// goes out as `\u00XX`.
-fn quote(out : StringBuilder, s : StringView) -> Unit {
+fn quote(out : StringBuilder, s : StringView, ascii : Bool) -> Unit {
   out.write_char('"')
   let mut run = 0
   for i in 0..<s.length() {
@@ -113,7 +137,7 @@ fn quote(out : StringBuilder, s : StringView) -> Unit {
       0x0A => "\\n"
       0x0D => "\\r"
       0x09 => "\\t"
-      _ => if c < 0x20 { hex_escape(c) } else { "" }
+      _ => if c < 0x20 || (ascii && c > 0x7E) { hex_escape(c) } else { "" }
     }
     if escape != "" {
       out.write_view(s[run:i])
@@ -129,8 +153,9 @@ fn quote(out : StringBuilder, s : StringView) -> Unit {
 fn hex_escape(c : Int) -> String {
   let digits = "0123456789abcdef"
   let out = StringBuilder()
-  out.write_string("\\u00")
-  out.write_char(digits.get_char((c >> 4) & 0xF).unwrap())
-  out.write_char(digits.get_char(c & 0xF).unwrap())
+  out.write_string("\\u")
+  for shift in [12, 8, 4, 0] {
+    out.write_char(digits.get_char((c >> shift) & 0xF).unwrap())
+  }
   out.to_string()
 }

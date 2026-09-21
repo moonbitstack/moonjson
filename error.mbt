@@ -39,6 +39,8 @@ pub(all) suberror Malformed {
   TooDeep(At)
   /// Bytes that are not UTF-8, when reading a document that arrived as bytes.
   BadUtf8(At)
+  /// A member name that appears twice, when the dialect refuses that.
+  Repeated(At, String)
 } derive(Eq, Debug)
 
 ///|
@@ -58,13 +60,6 @@ pub fn Malformed::at(self : Malformed) -> At {
     | Trailing(spot)
     | TooDeep(spot)
     | BadUtf8(spot) => spot
+    Repeated(spot, _) => spot
   }
 }
-
-///|
-/// How deep the nesting may go.
-///
-/// Five hundred is past anything a document written for a reader contains and
-/// far short of what exhausts a stack on any backend. JSONTestSuite's
-/// hundred-thousand-bracket cases are meant to be refused, not survived.
-pub let depth_limit : Int = 500

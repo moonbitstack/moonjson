@@ -27,18 +27,19 @@ One set of verbs, the ones Python's `json`, PyYAML and `tomllib` share:
 
 The `s` is on the form that takes or answers a string, as it is in Python. The
 plural set exists **exactly where the format defines a stream** — `lines` is a
-stream and has only those; `yaml` has both because `---` makes both meaningful;
-`json`, `jsonc` and `json5` define one document and have only the singular set.
+stream and has only those; `json`, `jsonc` and `json5` define one document and
+have only the singular set. `moonyaml` follows the same rule and has both,
+because `---` makes both meaningful.
 
 Not `from_str` and `to_string`: `to_string` already means `Show::to_string` in
-MoonBit, and `@yaml.to_string(x)` beside `x.to_string()` is a sentence that
+MoonBit, and `@json.to_string(x)` beside `x.to_string()` is a sentence that
 reads two ways.
 
 ```moonbit
-// Read a file, change one field, write it back.
-let cfg = @yaml.loads(text[:])
+// Read a document, change one field, write it back.
+let cfg = @jsonc.loads(text[:])
 let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
-@yaml.dumps(cfg)
+@json.dumps(cfg, indent=2)
 ```
 
 ## Packages
@@ -49,7 +50,6 @@ let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
 | `jsonc` | JSON with comments and trailing commas | what VS Code accepts |
 | `json5` | JSON5: unquoted names, single quotes, hexadecimal, `Infinity` | spec.json5.org |
 | `lines` | JSON Lines / NDJSON: one document to a line | jsonlines.org |
-| `yaml` | YAML block style, read and written — the shape a configuration file is in | YAML 1.2 |
 | `pointer` | JSON Pointer | RFC 6901 |
 | `moonjson` | The scanner the dialects share, the writer, and `Flavor` | — |
 

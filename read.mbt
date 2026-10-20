@@ -27,7 +27,7 @@ pub fn loads(input : StringView, flavor : Flavor) -> Json raise Malformed {
 pub fn load(
   input : BytesView,
   flavor : Flavor,
-  bom? : Bool = true,
+  bom~ : Bool = true,
 ) -> Json raise Malformed {
   let text = @utf8.decode(input, ignore_bom=bom) catch {
     _ => raise BadUtf8({ at: 0, line: 1, column: 1, })
@@ -39,13 +39,13 @@ pub fn load(
 priv struct Reader {
   src : StringView
   flavor : Flavor
-  mut i : Int
+  mut i : Int32
 }
 
 ///|
 /// Line and column are counted only once something has gone wrong, so the
 /// reader carries no bookkeeping through the common case.
-fn Reader::spot(self : Reader, at : Int) -> At {
+fn Reader::spot(self : Reader, at : Int32) -> At {
   let mut line = 1
   let mut column = 1
   for k in 0..<at {
@@ -61,7 +61,7 @@ fn Reader::spot(self : Reader, at : Int) -> At {
 
 ///|
 /// The code unit at `k`, or -1 past the end.
-fn Reader::peek(self : Reader, k : Int) -> Int {
+fn Reader::peek(self : Reader, k : Int32) -> Int32 {
   if k < self.src.length() {
     self.src.at(k).to_int()
   } else {
@@ -70,7 +70,7 @@ fn Reader::peek(self : Reader, k : Int) -> Int {
 }
 
 ///|
-fn Reader::here(self : Reader) -> Int {
+fn Reader::here(self : Reader) -> Int32 {
   self.peek(self.i)
 }
 
@@ -119,7 +119,7 @@ fn Reader::space(self : Reader) -> Unit raise Malformed {
 }
 
 ///|
-fn ends_line(c : Int) -> Bool {
+fn ends_line(c : Int32) -> Bool {
   c == 0x0A || c == 0x0D || c == 0x2028 || c == 0x2029
 }
 
@@ -127,7 +127,7 @@ fn ends_line(c : Int) -> Bool {
 /// The whitespace ECMAScript 5 recognises (JSON5 §2): the four JSON allows, plus
 /// vertical tab, form feed, no-break space, the byte-order mark, the line and
 /// paragraph separators, and the Unicode space separators.
-fn is_extra_space(c : Int) -> Bool {
+fn is_extra_space(c : Int32) -> Bool {
   c == 0x0B ||
   c == 0x0C ||
   c == 0xA0 ||
@@ -142,7 +142,7 @@ fn is_extra_space(c : Int) -> Bool {
 }
 
 ///|
-fn Reader::value(self : Reader, depth : Int) -> Json raise Malformed {
+fn Reader::value(self : Reader, depth : Int32) -> Json raise Malformed {
   if depth > self.flavor.depth {
     raise TooDeep(self.spot(self.i))
   }
@@ -185,7 +185,7 @@ fn Reader::word(self : Reader, want : String) -> Unit raise Malformed {
 }
 
 ///|
-fn Reader::object(self : Reader, depth : Int) -> Json raise Malformed {
+fn Reader::object(self : Reader, depth : Int32) -> Json raise Malformed {
   let out : Map[String, Json] = Map([])
   self.i += 1
   self.space()
@@ -240,7 +240,7 @@ fn Reader::object(self : Reader, depth : Int) -> Json raise Malformed {
 }
 
 ///|
-fn Reader::array(self : Reader, depth : Int) -> Json raise Malformed {
+fn Reader::array(self : Reader, depth : Int32) -> Json raise Malformed {
   let out : Array[Json] = []
   self.i += 1
   self.space()
@@ -290,7 +290,7 @@ fn Reader::name(self : Reader) -> String raise Malformed {
 }
 
 ///|
-fn is_name_part(c : Int, first : Bool) -> Bool {
+fn is_name_part(c : Int32, first : Bool) -> Bool {
   c == 0x24 ||
   c == 0x5F ||
   (c >= 0x41 && c <= 0x5A) ||
@@ -354,8 +354,8 @@ fn Reader::escape(self : Reader, out : StringBuilder) -> Unit raise Malformed {
 fn Reader::loose_escape(
   self : Reader,
   out : StringBuilder,
-  c : Int,
-  start : Int,
+  c : Int32,
+  start : Int32,
 ) -> Unit raise Malformed {
   if c < 0 {
     raise Truncated(self.spot(start))
@@ -393,7 +393,7 @@ fn Reader::loose_escape(
 /// A lone half is refused. It is not a character, it cannot be written back
 /// out, and every value that could be put in its place is a guess about what
 /// the writer meant.
-fn Reader::unicode(self : Reader, start : Int) -> Char raise Malformed {
+fn Reader::unicode(self : Reader, start : Int32) -> Char raise Malformed {
   let hi = self.quad(start)
   if hi < 0xD800 || hi > 0xDFFF {
     return hi.unsafe_to_char()
@@ -423,7 +423,7 @@ fn Reader::unicode(self : Reader, start : Int) -> Char raise Malformed {
 }
 
 ///|
-fn Reader::quad(self : Reader, start : Int) -> Int raise Malformed {
+fn Reader::quad(self : Reader, start : Int32) -> Int32 raise Malformed {
   let mut v = 0
   for _ in 0..<4 {
     let d = nibble(self.here())
@@ -437,7 +437,7 @@ fn Reader::quad(self : Reader, start : Int) -> Int raise Malformed {
 }
 
 ///|
-fn Reader::hex_byte(self : Reader, start : Int) -> Char raise Malformed {
+fn Reader::hex_byte(self : Reader, start : Int32) -> Char raise Malformed {
   let hi = nibble(self.here())
   let lo = nibble(self.peek(self.i + 1))
   if hi < 0 || lo < 0 {
@@ -448,7 +448,7 @@ fn Reader::hex_byte(self : Reader, start : Int) -> Char raise Malformed {
 }
 
 ///|
-fn nibble(c : Int) -> Int {
+fn nibble(c : Int32) -> Int32 {
   if c >= 0x30 && c <= 0x39 {
     c - 0x30
   } else if c >= 0x61 && c <= 0x66 {
@@ -598,7 +598,7 @@ fn out_of_range(text : StringView) -> Double {
 /// is not valid JSON and must not be written back out.
 fn Reader::hex_number(
   self : Reader,
-  start : Int,
+  start : Int32,
   signed : Bool,
 ) -> Json raise Malformed {
   self.i += 2

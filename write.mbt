@@ -14,9 +14,9 @@
 /// write — becomes `null`, as every JavaScript implementation does.
 pub fn dumps(
   value : Json,
-  indent? : Int = 0,
-  ascii? : Bool = false,
-  sort? : Bool = false,
+  indent~ : Int32 = 0,
+  ascii~ : Bool = false,
+  sort~ : Bool = false,
 ) -> String {
   let out = StringBuilder()
   put(out, value, indent, 0, ascii, sort)
@@ -27,9 +27,9 @@ pub fn dumps(
 /// The same, as UTF-8 bytes — the form a body goes onto a wire in.
 pub fn dump(
   value : Json,
-  indent? : Int = 0,
-  ascii? : Bool = false,
-  sort? : Bool = false,
+  indent~ : Int32 = 0,
+  ascii~ : Bool = false,
+  sort~ : Bool = false,
 ) -> Bytes {
   @utf8.encode(dumps(value, indent~, ascii~, sort~)[:])
 }
@@ -38,8 +38,8 @@ pub fn dump(
 fn put(
   out : StringBuilder,
   value : Json,
-  indent : Int,
-  level : Int,
+  indent : Int32,
+  level : Int32,
   ascii : Bool,
   sort : Bool,
 ) -> Unit {
@@ -108,7 +108,7 @@ fn put(
 }
 
 ///|
-fn newline(out : StringBuilder, indent : Int, level : Int) -> Unit {
+fn newline(out : StringBuilder, indent : Int32, level : Int32) -> Unit {
   if indent > 0 {
     out.write_char('\n')
     for _ in 0..<(indent * level) {
@@ -150,7 +150,7 @@ fn quote(out : StringBuilder, s : StringView, ascii : Bool) -> Unit {
 }
 
 ///|
-fn hex_escape(c : Int) -> String {
+fn hex_escape(c : Int32) -> String {
   let digits = "0123456789abcdef"
   let out = StringBuilder()
   out.write_string("\\u")

@@ -6,9 +6,9 @@ import {
 }
 
 // Values
-pub fn dump(Json, indent? : Int, ascii? : Bool, sort? : Bool) -> Bytes
+pub fn dump(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> Bytes
 
-pub fn dumps(Json, indent? : Int, ascii? : Bool, sort? : Bool) -> String
+pub fn dumps(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> String
 
 pub fn load(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> Json raise @moonjson.Malformed
 

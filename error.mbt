@@ -9,9 +9,9 @@
 /// how every editor counts and an error a person cannot find in their file is
 /// half an error.
 pub(all) struct At {
-  at : Int
-  line : Int
-  column : Int
+  at : Int32
+  line : Int32
+  column : Int32
 } derive(Eq, Debug)
 
 ///|

@@ -8,9 +8,9 @@ import {
 // Values
 pub let commented : Flavor
 
-pub fn dump(Json, indent? : Int, ascii? : Bool, sort? : Bool) -> Bytes
+pub fn dump(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> Bytes
 
-pub fn dumps(Json, indent? : Int, ascii? : Bool, sort? : Bool) -> String
+pub fn dumps(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> String
 
 pub fn load(BytesView, Flavor, bom? : Bool) -> Json raise Malformed
 
@@ -38,9 +38,9 @@ pub fn Malformed::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct At {
-  at : Int
-  line : Int
-  column : Int
+  at : Int32
+  line : Int32
+  column : Int32
 } derive(Eq, @debug.Debug)
 pub fn At::equal(Self, Self) -> Bool
 pub fn At::not_equal(Self, Self) -> Bool
@@ -63,12 +63,12 @@ pub(all) struct Flavor {
   extra_numbers : Bool
   extra_escapes : Bool
   extra_space : Bool
-  depth : Int
+  depth : Int32
   surrogates : Bool
   duplicates : Duplicates
 } derive(Eq, @debug.Debug)
 pub fn Flavor::equal(Self, Self) -> Bool
-pub fn Flavor::new(comments? : Bool, trailing_commas? : Bool, unquoted_keys? : Bool, single_quotes? : Bool, extra_numbers? : Bool, extra_escapes? : Bool, extra_space? : Bool, depth? : Int, surrogates? : Bool, duplicates? : Duplicates) -> Self
+pub fn Flavor::new(comments? : Bool, trailing_commas? : Bool, unquoted_keys? : Bool, single_quotes? : Bool, extra_numbers? : Bool, extra_escapes? : Bool, extra_space? : Bool, depth? : Int32, surrogates? : Bool, duplicates? : Duplicates) -> Self
 pub fn Flavor::not_equal(Self, Self) -> Bool
 pub fn Flavor::to_repr(Self) -> @debug.Repr
 

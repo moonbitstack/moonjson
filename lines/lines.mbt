@@ -10,7 +10,7 @@
 /// half the tools that produce these files run on Windows.
 pub fn loads_all(
   input : StringView,
-  flavor? : @moonjson.Flavor = @moonjson.strict,
+  flavor~ : @moonjson.Flavor = @moonjson.strict,
 ) -> Array[Json] raise @moonjson.Malformed {
   let out : Array[Json] = []
   let mut start = 0
@@ -37,8 +37,8 @@ pub fn loads_all(
 /// The same, from bytes.
 pub fn load_all(
   input : BytesView,
-  flavor? : @moonjson.Flavor = @moonjson.strict,
-  bom? : Bool = true,
+  flavor~ : @moonjson.Flavor = @moonjson.strict,
+  bom~ : Bool = true,
 ) -> Array[Json] raise @moonjson.Malformed {
   let text = @utf8.decode(input, ignore_bom=bom) catch {
     _ => raise @moonjson.BadUtf8({ at: 0, line: 1, column: 1, })
@@ -53,8 +53,8 @@ pub fn load_all(
 /// cannot be appended to safely, which is the format's whole purpose.
 pub fn dumps_all(
   values : ArrayView[Json],
-  ascii? : Bool = false,
-  sort? : Bool = false,
+  ascii~ : Bool = false,
+  sort~ : Bool = false,
 ) -> String {
   let out = StringBuilder()
   for value in values {
@@ -68,8 +68,8 @@ pub fn dumps_all(
 /// The same, as UTF-8 bytes.
 pub fn dump_all(
   values : ArrayView[Json],
-  ascii? : Bool = false,
-  sort? : Bool = false,
+  ascii~ : Bool = false,
+  sort~ : Bool = false,
 ) -> Bytes {
   @utf8.encode(dumps_all(values, ascii~, sort~)[:])
 }

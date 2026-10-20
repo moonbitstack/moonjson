@@ -9,7 +9,7 @@
 /// loses them.
 pub fn loads(
   input : StringView,
-  flavor? : @moonjson.Flavor = @moonjson.commented,
+  flavor~ : @moonjson.Flavor = @moonjson.commented,
 ) -> Json raise @moonjson.Malformed {
   @moonjson.loads(input, flavor)
 }
@@ -18,8 +18,8 @@ pub fn loads(
 /// The same, from the UTF-8 bytes a body arrives as.
 pub fn load(
   input : BytesView,
-  flavor? : @moonjson.Flavor = @moonjson.commented,
-  bom? : Bool = true,
+  flavor~ : @moonjson.Flavor = @moonjson.commented,
+  bom~ : Bool = true,
 ) -> Json raise @moonjson.Malformed {
   @moonjson.load(input, flavor, bom~)
 }
@@ -34,9 +34,9 @@ pub fn load(
 /// instead of the order they were read in, which is what a diff wants.
 pub fn dumps(
   value : Json,
-  indent? : Int = 0,
-  ascii? : Bool = false,
-  sort? : Bool = false,
+  indent~ : Int32 = 0,
+  ascii~ : Bool = false,
+  sort~ : Bool = false,
 ) -> String {
   @moonjson.dumps(value, indent~, ascii~, sort~)
 }
@@ -45,9 +45,9 @@ pub fn dumps(
 /// The same, as the UTF-8 bytes a body goes out as.
 pub fn dump(
   value : Json,
-  indent? : Int = 0,
-  ascii? : Bool = false,
-  sort? : Bool = false,
+  indent~ : Int32 = 0,
+  ascii~ : Bool = false,
+  sort~ : Bool = false,
 ) -> Bytes {
   @moonjson.dump(value, indent~, ascii~, sort~)
 }

@@ -58,7 +58,7 @@ pub(all) struct Flavor {
   /// Jackson refuses past 1000, serde_json past 128 — but not on having one,
   /// because a document of a hundred thousand open brackets is a denial of
   /// service rather than a document.
-  depth : Int
+  depth : Int32
   /// Whether a lone half of a surrogate pair is a character.
   ///
   /// Implementations disagree: JavaScript keeps it, Go replaces it, serde_json
@@ -121,16 +121,16 @@ pub let relaxed : Flavor = {
 /// The same thing can be written `{ ..@moonjson.strict, depth: 100 }`; this
 /// form exists because a named argument reads better when several parts differ.
 pub fn Flavor::new(
-  comments? : Bool = strict.comments,
-  trailing_commas? : Bool = strict.trailing_commas,
-  unquoted_keys? : Bool = strict.unquoted_keys,
-  single_quotes? : Bool = strict.single_quotes,
-  extra_numbers? : Bool = strict.extra_numbers,
-  extra_escapes? : Bool = strict.extra_escapes,
-  extra_space? : Bool = strict.extra_space,
-  depth? : Int = strict.depth,
-  surrogates? : Bool = strict.surrogates,
-  duplicates? : Duplicates = strict.duplicates,
+  comments~ : Bool = strict.comments,
+  trailing_commas~ : Bool = strict.trailing_commas,
+  unquoted_keys~ : Bool = strict.unquoted_keys,
+  single_quotes~ : Bool = strict.single_quotes,
+  extra_numbers~ : Bool = strict.extra_numbers,
+  extra_escapes~ : Bool = strict.extra_escapes,
+  extra_space~ : Bool = strict.extra_space,
+  depth~ : Int32 = strict.depth,
+  surrogates~ : Bool = strict.surrogates,
+  duplicates~ : Duplicates = strict.duplicates,
 ) -> Flavor {
   {
     comments,

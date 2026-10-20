@@ -6,7 +6,7 @@
 pub(all) suberror Bad {
   /// A pointer that is not empty and does not start with a slash (RFC 6901 §3),
   /// or a `~` followed by anything but `0` or `1`.
-  Syntax(at~ : Int)
+  Syntax(at~ : Int32)
   /// A name no object has, or an index no array reaches.
   Missing(token~ : String)
   /// A token used where the document holds neither an object nor an array — a
@@ -128,7 +128,7 @@ fn step(here : Json, token : String) -> Json raise Bad {
 ///|
 /// An array index as RFC 6901 §4 writes one: decimal digits, and no leading
 /// zero unless the index is zero itself.
-fn index_of(token : String) -> Int {
+fn index_of(token : String) -> Int32 {
   if token.length() == 0 {
     return -1
   }

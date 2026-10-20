@@ -22,7 +22,7 @@ pub fn tokens(StringView) -> Array[String] raise Bad
 
 // Errors
 pub(all) suberror Bad {
-  Syntax(at~ : Int)
+  Syntax(at~ : Int32)
   Missing(token~ : String)
   NotContainer(token~ : String)
 } derive(Eq, @debug.Debug)

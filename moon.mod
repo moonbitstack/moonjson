@@ -20,5 +20,3 @@ keywords = [
 ]
 
 description = "moonjson — the JSON family for MoonBit: RFC 8259 JSON, JSONC, JSON5 and JSON Lines over one data model, with JSON Pointer, and failures that name the line and column."
-
-preferred_target = "wasm-gc"

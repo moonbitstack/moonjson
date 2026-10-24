@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/jcs"
+
+import {
+  "moonbitstack/moonjson",
+}
+
+// Values
+pub fn dump(Json) -> Bytes raise @moonjson.Refused
+
+pub fn dumps(Json) -> String raise @moonjson.Refused
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

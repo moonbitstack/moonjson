@@ -1,0 +1,18 @@
+// JSON Canonicalisation Scheme, RFC 8785: https://www.rfc-editor.org/rfc/rfc8785
+//
+// One tree, one document: JCS exists so that two parties can sign the same
+// bytes. Nothing here is a knob, because a canonical form with options is not
+// canonical — the numbers are ECMAScript's, the member order is UTF-16 code
+// unit order, and a number that is not finite is refused rather than spelled
+// some way we invented.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/double",
+} for "test"

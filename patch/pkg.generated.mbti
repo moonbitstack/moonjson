@@ -1,0 +1,52 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/patch"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitstack/moonjson",
+}
+
+// Values
+pub fn apply(Json, ArrayView[Operation]) -> Json raise Failure
+
+pub fn dump(ArrayView[Operation], indent? : Int32, ascii? : Bool, sort? : Bool) -> Bytes
+
+pub fn dumps(ArrayView[Operation], indent? : Int32, ascii? : Bool, sort? : Bool) -> String
+
+pub fn load(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> Array[Operation] raise Failure
+
+pub fn loads(StringView, flavor? : @moonjson.Flavor) -> Array[Operation] raise Failure
+
+// Errors
+pub(all) suberror Failure {
+  Unreadable(@moonjson.Malformed)
+  Document(why~ : String)
+  Operation(at~ : Int32, why~ : String)
+  Syntax(path~ : String, at~ : Int32)
+  Missing(path~ : String, token~ : String)
+  NotContainer(path~ : String, token~ : String)
+  BadIndex(path~ : String, token~ : String)
+  TestFailed(path~ : String)
+  IntoChild(from~ : String, path~ : String)
+  Root(path~ : String)
+} derive(Eq, @debug.Debug)
+pub fn Failure::equal(Self, Self) -> Bool
+pub fn Failure::not_equal(Self, Self) -> Bool
+pub fn Failure::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+pub(all) enum Operation {
+  Add(path~ : String, value~ : Json)
+  Remove(path~ : String)
+  Replace(path~ : String, value~ : Json)
+  Move(path~ : String, from~ : String)
+  Copy(path~ : String, from~ : String)
+  Test(path~ : String, value~ : Json)
+} derive(Eq, @debug.Debug)
+pub fn Operation::equal(Self, Self) -> Bool
+pub fn Operation::not_equal(Self, Self) -> Bool
+pub fn Operation::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

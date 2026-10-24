@@ -15,8 +15,10 @@ keywords = [
   "jsonlines",
   "ndjson",
   "json-pointer",
+  "json-patch",
+  "merge-patch",
   "parser",
   "moonbit",
 ]
 
-description = "moonjson — the JSON family for MoonBit: RFC 8259 JSON, JSONC, JSON5 and JSON Lines over one data model, with JSON Pointer, and failures that name the line and column."
+description = "moonjson — the JSON family for MoonBit: RFC 8259 JSON, JSONC, JSON5 and JSON Lines over one data model, with JSON Pointer, JSON Patch and Merge Patch, and failures that name the line and column."

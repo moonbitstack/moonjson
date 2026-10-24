@@ -1,0 +1,13 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/merge"
+
+// Values
+pub fn merge(Json, Json) -> Json
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

@@ -6,5 +6,7 @@ import {
   "moonbitstack/moonjson/jsonc",
   "moonbitstack/moonjson/json5",
   "moonbitstack/moonjson/lines",
+  "moonbitstack/moonjson/merge",
+  "moonbitstack/moonjson/patch",
   "moonbitstack/moonjson/pointer",
 }

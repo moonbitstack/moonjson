@@ -44,6 +44,19 @@ fn main raise {
   println("pointer       -> \{@json.dumps(@pointer.get(tree, "/a/b/1"))}")
   println("missing       -> \{@pointer.has(tree, "/a/b/9")}")
 
+  // A patch is a list of operations, applied in order or not at all.
+  let ops = @patch.loads(
+    "[{\"op\":\"replace\",\"path\":\"/port\",\"value\":9090},{\"op\":\"add\",\"path\":\"/tls\",\"value\":true}]",
+  )
+  println("patch         -> \{@json.dumps(@patch.apply(plain, ops))}")
+
+  // A merge patch looks like the document: a member that is not there is
+  // added, one that is there is replaced, and a null takes one away.
+  let patch_text = "{\"port\":9090,\"tls\":null}"
+  println(
+    "merge         -> \{@json.dumps(@merge.merge(plain, @json.loads(patch_text)))}",
+  )
+
   // A failure says where it happened.
   try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") |> ignore catch {
     e => {

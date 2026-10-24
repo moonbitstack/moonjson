@@ -1,0 +1,14 @@
+// JSON Merge Patch, RFC 7396: https://www.rfc-editor.org/rfc/rfc7396
+//
+// A merge patch has no syntax of its own: the patch document is a JSON
+// document, read with `@json.loads` like any other. What this package adds is
+// the evaluation — the rules that say which members of the target are added,
+// replaced or taken away — so there are no loads and dumps here. The four
+// faces belong to formats, and the format is plain JSON.
+//
+// The algorithm is RFC 7396 §2's, and it never fails: every pair of documents
+// has a merge, so there is nothing to raise.
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

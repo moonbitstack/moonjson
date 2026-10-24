@@ -5,5 +5,4 @@
 // unquoted name, no control character inside a string.
 import {
   "moonbitstack/moonjson",
-  "moonbitstack/moonjson",
 }

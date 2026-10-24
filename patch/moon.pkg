@@ -1,0 +1,20 @@
+// JSON Patch, RFC 6902: https://www.rfc-editor.org/rfc/rfc6902
+//
+// A patch document is an array of operation objects, each naming one change —
+// add, remove, replace, move, copy or test — against a target document. It is
+// read into `Operation`s rather than left as a tree of objects, because the six
+// share nothing but their shape: two carry a value, two carry a second pointer,
+// and a document whose `op` is misspelled is a document that would quietly do
+// nothing.
+//
+// The pointers inside an operation are `@pointer`'s. The syntax, the escapes
+// and the refusals come from there, said about the member that named them, so
+// one implementation of RFC 6901 serves both packages.
+import {
+  "moonbitstack/moonjson",
+  "moonbitstack/moonjson/pointer",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

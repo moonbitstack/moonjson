@@ -51,11 +51,17 @@ let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
 | `json5` | JSON5: unquoted names, single quotes, hexadecimal, `Infinity` | spec.json5.org |
 | `lines` | JSON Lines / NDJSON: one document to a line | jsonlines.org |
 | `pointer` | JSON Pointer | RFC 6901 |
+| `patch` | JSON Patch: add, remove, replace, move, copy, test | RFC 6902 |
+| `merge` | JSON Merge Patch | RFC 7396 |
 | `moonjson` | The scanner the dialects share, the writer, and `Flavor` | — |
 
 Each has the same four faces — `parse`, `parse_bytes`, `write`, `write_bytes` —
 so learning one is learning all of them. Writing is always strict JSON, whatever
 the document was written in.
+
+`merge` is the one without them: a merge patch has no syntax of its own — the
+patch document is a JSON document, read with `@json.loads` — so the package
+holds the evaluation and nothing else.
 
 ## Configuration
 
@@ -111,6 +117,31 @@ as every JavaScript implementation writes it.
 
 Members keep their order.
 
+## Changing a document
+
+Three ways, for three kinds of change. One place is named with a pointer
+(RFC 6901); a set of changes that must all hold or none is a patch (RFC 6902);
+and a change that looks like the document itself is a merge patch (RFC 7396).
+
+```moonbit
+// One field, and nothing else changes.
+let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
+
+// Six operations, applied in order — or, if one fails, not at all.
+let ops = @patch.loads(
+  "[{\"op\":\"test\",\"path\":\"/spec/replicas\",\"value\":1},{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":5}]"
+)
+@patch.apply(cfg, ops)
+
+// A patch that looks like the document: a member that is not there is added,
+// one that is there is replaced, and a null takes one away.
+@merge.merge(cfg, @json.loads("{\"spec\":{\"replicas\":5,\"image\":null}}"))
+```
+
+A patch is read into `Operation`s rather than left as a tree of objects, so a
+misspelled `op` is an error rather than a document that quietly does nothing,
+and the pointers inside it are the same ones `@pointer` reads.
+
 ## Failures
 
 Reading raises `Malformed`, which says what went wrong and where — offset, line
@@ -134,12 +165,14 @@ The strict parser is measured against cases drawn from JSONTestSuite, with every
 verdict taken from a third-party parser rather than asserted from memory — 95
 documents that must be accepted or refused, and are. JSON5 is measured against
 the document json5.org puts on its front page, and JSON Pointer against every
-example RFC 6901 §5 prints.
+example RFC 6901 §5 prints. JSON Patch is measured against every example
+RFC 6902 Appendix A prints, and JSON Merge Patch against every case RFC 7396
+Appendix A prints.
 
 ## What is not here yet
 
 Hjson and the other text dialects; CBOR, MessagePack, BSON and the other binary
-encodings; PostgreSQL's and SQLite's `jsonb`; JSON Patch, JSONPath, JSON Schema
+encodings; PostgreSQL's and SQLite's `jsonb`; JSONPath, JSON Schema
 and canonical serialisation. They are planned in that order; the tracking list
 lives with the project.
 

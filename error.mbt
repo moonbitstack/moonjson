@@ -49,6 +49,17 @@ pub(all) suberror Refused {
   BadUtf8(At)
   /// A member name that appears twice, when the dialect refuses that.
   Repeated(At, String)
+  // Binary formats, where there is no text and so no line to name: `at` is the
+  // byte offset from the start of the document.
+  /// The document ended inside a value.
+  Short(at~ : Int32)
+  /// Something after the value ended. A document is one value, and a reader
+  /// that stops at the first turns a corrupt file into a plausible one.
+  Extra(at~ : Int32)
+  /// A byte that cannot be read this way: a reserved additional-information
+  /// value, a length or an index that does not fit, a string that is not UTF-8,
+  /// a nesting that went too deep.
+  Bad(at~ : Int32, why~ : String)
   // Writing.
   /// A value the format has no way to write: a number that is not finite into
   /// JSON, a byte string into a text dialect, a key that is not a string into
@@ -102,7 +113,10 @@ pub fn Refused::at(self : Refused) -> At? {
     | TooDeep(spot)
     | BadUtf8(spot) => Some(spot)
     Repeated(spot, _) => Some(spot)
-    Unwritable(_)
+    Short(_)
+    | Extra(_)
+    | Bad(..)
+    | Unwritable(_)
     | Syntax(..)
     | Missing(..)
     | NotContainer(..)

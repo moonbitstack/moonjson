@@ -147,7 +147,7 @@ fn number(out : StringBuilder, n : Double) -> Unit raise @moonjson.Refused {
     return
   }
   let mut i = 0
-  if text.at(0) == '-' {
+  if text.at(0).to_int() == 0x2D {
     out.write_char('-')
     i = 1
   }

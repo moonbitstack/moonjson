@@ -1,0 +1,20 @@
+// Concise Binary Object Representation, RFC 8949:
+// https://www.rfc-editor.org/rfc/rfc8949
+//
+// CBOR is JSON's data model with the corners filled in: byte strings, integers
+// that a double cannot hold, tags, and a distinction between `false` and
+// `undefined`. It writes itself into a tree the rest of this family already
+// understands, and what the tree cannot hold outright is carried in the markers
+// documented on `load` — so a CBOR document can be read here and written as
+// JSON, and a JSON document can be written here and read there.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/double",
+  "moonbitlang/core/encoding/hex",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

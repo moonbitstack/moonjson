@@ -2,33 +2,25 @@
 package "moonbitstack/moonjson/pointer"
 
 import {
-  "moonbitlang/core/debug",
+  "moonbitstack/moonjson",
 }
 
 // Values
 pub fn escape(StringView) -> String
 
-pub fn get(Json, StringView) -> Json raise Bad
+pub fn get(Json, StringView) -> Json raise @moonjson.Refused
 
 pub fn has(Json, StringView) -> Bool
 
 pub fn join(ArrayView[String]) -> String
 
-pub fn remove(Json, StringView) -> Json raise Bad
+pub fn remove(Json, StringView) -> Json raise @moonjson.Refused
 
-pub fn set(Json, StringView, Json) -> Json raise Bad
+pub fn set(Json, StringView, Json) -> Json raise @moonjson.Refused
 
-pub fn tokens(StringView) -> Array[String] raise Bad
+pub fn tokens(StringView) -> Array[String] raise @moonjson.Refused
 
 // Errors
-pub(all) suberror Bad {
-  Syntax(at~ : Int32)
-  Missing(token~ : String)
-  NotContainer(token~ : String)
-} derive(Eq, @debug.Debug)
-pub fn Bad::equal(Self, Self) -> Bool
-pub fn Bad::not_equal(Self, Self) -> Bool
-pub fn Bad::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 

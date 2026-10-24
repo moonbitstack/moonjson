@@ -71,7 +71,7 @@ test "strict JSON refuses what this accepts" {
 test "a failure after a comment names the right place" {
   try @jsonc.loads("// one\n// two\n[1, ?]") |> ignore catch {
     e => {
-      let spot = e.at()
+      let spot = e.at().unwrap()
       assert_eq(spot.line, 3)
       assert_eq(spot.column, 5)
     }

@@ -8,7 +8,7 @@
 /// and — where the dialect allows them — comments, is [`Trailing`], not silently
 /// ignored. A parser that stops at the first value turns a truncated file into a
 /// plausible one.
-pub fn loads(input : StringView, flavor : Flavor) -> Json raise Malformed {
+pub fn loads(input : StringView, flavor : Flavor) -> Json raise Refused {
   let r = { src: input, flavor, i: 0, }
   r.space()
   let value = r.value(0)
@@ -28,7 +28,7 @@ pub fn load(
   input : BytesView,
   flavor : Flavor,
   bom~ : Bool = true,
-) -> Json raise Malformed {
+) -> Json raise Refused {
   let text = @utf8.decode(input, ignore_bom=bom) catch {
     _ => raise BadUtf8({ at: 0, line: 1, column: 1, })
   }
@@ -75,7 +75,7 @@ fn Reader::here(self : Reader) -> Int32 {
 }
 
 ///|
-fn Reader::fail(self : Reader) -> Malformed {
+fn Reader::fail(self : Reader) -> Refused {
   let c = self.here()
   if c < 0 {
     Truncated(self.spot(self.i))
@@ -85,7 +85,7 @@ fn Reader::fail(self : Reader) -> Malformed {
 }
 
 ///|
-fn Reader::space(self : Reader) -> Unit raise Malformed {
+fn Reader::space(self : Reader) -> Unit raise Refused {
   let mut going = true
   while going {
     let c = self.here()
@@ -142,7 +142,7 @@ fn is_extra_space(c : Int32) -> Bool {
 }
 
 ///|
-fn Reader::value(self : Reader, depth : Int32) -> Json raise Malformed {
+fn Reader::value(self : Reader, depth : Int32) -> Json raise Refused {
   if depth > self.flavor.depth {
     raise TooDeep(self.spot(self.i))
   }
@@ -173,7 +173,7 @@ fn Reader::value(self : Reader, depth : Int32) -> Json raise Malformed {
 }
 
 ///|
-fn Reader::word(self : Reader, want : String) -> Unit raise Malformed {
+fn Reader::word(self : Reader, want : String) -> Unit raise Refused {
   let start = self.i
   for k in 0..<want.length() {
     if self.peek(start + k) != want.at(k).to_int() {
@@ -185,7 +185,7 @@ fn Reader::word(self : Reader, want : String) -> Unit raise Malformed {
 }
 
 ///|
-fn Reader::object(self : Reader, depth : Int32) -> Json raise Malformed {
+fn Reader::object(self : Reader, depth : Int32) -> Json raise Refused {
   let out : Map[String, Json] = Map([])
   self.i += 1
   self.space()
@@ -240,7 +240,7 @@ fn Reader::object(self : Reader, depth : Int32) -> Json raise Malformed {
 }
 
 ///|
-fn Reader::array(self : Reader, depth : Int32) -> Json raise Malformed {
+fn Reader::array(self : Reader, depth : Int32) -> Json raise Refused {
   let out : Array[Json] = []
   self.i += 1
   self.space()
@@ -278,7 +278,7 @@ fn Reader::array(self : Reader, depth : Int32) -> Json raise Malformed {
 ///|
 /// An unquoted member name (JSON5 §4): an ECMAScript identifier. `$` and `_`
 /// start one, as does any letter; digits may follow.
-fn Reader::name(self : Reader) -> String raise Malformed {
+fn Reader::name(self : Reader) -> String raise Refused {
   let start = self.i
   while is_name_part(self.here(), self.i == start) {
     self.i += 1
@@ -300,7 +300,7 @@ fn is_name_part(c : Int32, first : Bool) -> Bool {
 }
 
 ///|
-fn Reader::text(self : Reader) -> String raise Malformed {
+fn Reader::text(self : Reader) -> String raise Refused {
   let quote = self.here()
   let open = self.i
   self.i += 1
@@ -331,7 +331,7 @@ fn Reader::text(self : Reader) -> String raise Malformed {
 }
 
 ///|
-fn Reader::escape(self : Reader, out : StringBuilder) -> Unit raise Malformed {
+fn Reader::escape(self : Reader, out : StringBuilder) -> Unit raise Refused {
   let start = self.i
   self.i += 1
   let c = self.here()
@@ -356,7 +356,7 @@ fn Reader::loose_escape(
   out : StringBuilder,
   c : Int32,
   start : Int32,
-) -> Unit raise Malformed {
+) -> Unit raise Refused {
   if c < 0 {
     raise Truncated(self.spot(start))
   }
@@ -393,7 +393,7 @@ fn Reader::loose_escape(
 /// A lone half is refused. It is not a character, it cannot be written back
 /// out, and every value that could be put in its place is a guess about what
 /// the writer meant.
-fn Reader::unicode(self : Reader, start : Int32) -> Char raise Malformed {
+fn Reader::unicode(self : Reader, start : Int32) -> Char raise Refused {
   let hi = self.quad(start)
   if hi < 0xD800 || hi > 0xDFFF {
     return hi.unsafe_to_char()
@@ -423,7 +423,7 @@ fn Reader::unicode(self : Reader, start : Int32) -> Char raise Malformed {
 }
 
 ///|
-fn Reader::quad(self : Reader, start : Int32) -> Int32 raise Malformed {
+fn Reader::quad(self : Reader, start : Int32) -> Int32 raise Refused {
   let mut v = 0
   for _ in 0..<4 {
     let d = nibble(self.here())
@@ -437,7 +437,7 @@ fn Reader::quad(self : Reader, start : Int32) -> Int32 raise Malformed {
 }
 
 ///|
-fn Reader::hex_byte(self : Reader, start : Int32) -> Char raise Malformed {
+fn Reader::hex_byte(self : Reader, start : Int32) -> Char raise Refused {
   let hi = nibble(self.here())
   let lo = nibble(self.peek(self.i + 1))
   if hi < 0 || lo < 0 {
@@ -464,7 +464,7 @@ fn nibble(c : Int32) -> Int32 {
 /// A number, keeping the text it was written as when that text is also valid
 /// RFC 8259 — so a twenty-digit integer comes back out unchanged instead of
 /// through a double.
-fn Reader::number(self : Reader) -> Json raise Malformed {
+fn Reader::number(self : Reader) -> Json raise Refused {
   let start = self.i
   let mut signed = false
   let mut plain = true
@@ -600,7 +600,7 @@ fn Reader::hex_number(
   self : Reader,
   start : Int32,
   signed : Bool,
-) -> Json raise Malformed {
+) -> Json raise Refused {
   self.i += 2
   let from = self.i
   let mut value = 0.0

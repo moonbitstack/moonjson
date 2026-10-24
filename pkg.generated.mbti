@@ -12,16 +12,16 @@ pub fn dump(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> Bytes
 
 pub fn dumps(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> String
 
-pub fn load(BytesView, Flavor, bom? : Bool) -> Json raise Malformed
+pub fn load(BytesView, Flavor, bom? : Bool) -> Json raise Refused
 
-pub fn loads(StringView, Flavor) -> Json raise Malformed
+pub fn loads(StringView, Flavor) -> Json raise Refused
 
 pub let relaxed : Flavor
 
 pub let strict : Flavor
 
 // Errors
-pub(all) suberror Malformed {
+pub(all) suberror Refused {
   Unexpected(At, Char)
   Truncated(At)
   BadEscape(At)
@@ -30,11 +30,21 @@ pub(all) suberror Malformed {
   TooDeep(At)
   BadUtf8(At)
   Repeated(At, String)
+  Unwritable(why~ : String)
+  Syntax(path~ : String, at~ : Int32)
+  Missing(path~ : String, token~ : String)
+  NotContainer(path~ : String, token~ : String)
+  BadIndex(path~ : String, token~ : String)
+  Document(why~ : String)
+  Operation(at~ : Int32, why~ : String)
+  TestFailed(path~ : String)
+  IntoChild(from~ : String, path~ : String)
+  Root(path~ : String)
 } derive(Eq, @debug.Debug)
-pub fn Malformed::at(Self) -> At
-pub fn Malformed::equal(Self, Self) -> Bool
-pub fn Malformed::not_equal(Self, Self) -> Bool
-pub fn Malformed::to_repr(Self) -> @debug.Repr
+pub fn Refused::at(Self) -> At?
+pub fn Refused::equal(Self, Self) -> Bool
+pub fn Refused::not_equal(Self, Self) -> Bool
+pub fn Refused::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct At {

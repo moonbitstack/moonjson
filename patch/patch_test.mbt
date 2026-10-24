@@ -50,7 +50,7 @@ test "the RFC 6902 appendix A examples" {
 /// What must be refused, and with what said about it: the appendix's error
 /// cases, and the rules RFC 6902 §4 states around them.
 test "a patch that cannot be applied" {
-  let cases : Array[(String, String, @patch.Failure)] = [
+  let cases : Array[(String, String, @moonjson.Refused)] = [
     // A.9 — a test that does not hold.
     (
       "{\"baz\":\"qux\"}",
@@ -213,11 +213,7 @@ test "a document that is not a patch" {
   // Not JSON at all is the scanner's error, unchanged and still naming the
   // line and the column.
   try @patch.loads("[") |> ignore catch {
-    e =>
-      match e {
-        Unreadable(m) => assert_eq(m.at().line, 1)
-        _ => fail("an unclosed array was read as a patch")
-      }
+    e => assert_eq(e.at().unwrap().line, 1)
   } noraise {
     _ => fail("an unclosed array was read as a patch")
   }

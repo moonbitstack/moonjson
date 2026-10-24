@@ -75,19 +75,20 @@ test "an element is replaced by index, and a dash appends" {
 /// Inventing the objects along the way would make a typo succeed quietly.
 test "a path that does not exist is not invented" {
   try @pointer.set(tree(), "/nope/deeper", Json::number(1)) |> ignore catch {
-    e => assert_eq(e, @pointer.Missing(token="nope"))
+    e => assert_eq(e, @moonjson.Missing(path="/nope/deeper", token="nope"))
   } noraise {
     _ => fail("a pointer through a missing object was followed")
   }
   // Walking into a scalar and continuing is refused too.
   try @pointer.set(tree(), "/count/deeper", Json::number(1)) |> ignore catch {
-    e => assert_eq(e, @pointer.NotContainer(token="deeper"))
+    e =>
+      assert_eq(e, @moonjson.NotContainer(path="/count/deeper", token="deeper"))
   } noraise {
     _ => fail("a pointer walked into a number")
   }
   // An index past the end is not an append.
   try @pointer.set(tree(), "/foo/9", Json::string("x")) |> ignore catch {
-    e => assert_eq(e, @pointer.Missing(token="9"))
+    e => assert_eq(e, @moonjson.Missing(path="/foo/9", token="9"))
   } noraise {
     _ => fail("an index past the end was accepted")
   }
@@ -103,13 +104,13 @@ test "a member and an element are removed" {
   assert_eq(@pointer.get(shorter, "/foo"), Json::array([Json::string("baz")]))
   // What was never there cannot be taken away.
   try @pointer.remove(tree(), "/spec/nope") |> ignore catch {
-    e => assert_eq(e, @pointer.Missing(token="nope"))
+    e => assert_eq(e, @moonjson.Missing(path="/spec/nope", token="nope"))
   } noraise {
     _ => fail("a member that was not there was removed")
   }
   // The root names the whole document; there would be nothing to answer with.
   try @pointer.remove(tree(), "") |> ignore catch {
-    e => assert_eq(e, @pointer.Syntax(at=0))
+    e => assert_eq(e, @moonjson.Root(path=""))
   } noraise {
     _ => fail("the root was removed")
   }

@@ -43,45 +43,6 @@ pub extend Operation with Eq::{equal, not_equal}
 pub extend Operation with Debug::{to_repr}
 
 ///|
-/// Why a patch could not be read, or could not be applied.
-///
-/// A pointer that failed is named in full, because a `move` and a `copy` each
-/// carry two and an error that did not say which one would be half an error.
-pub(all) suberror Failure {
-  /// The document is not JSON at all: the scanner refused it, and says where.
-  Unreadable(@moonjson.Malformed)
-  /// The document is JSON but not a patch: not an array of operations.
-  Document(why~ : String)
-  /// The operation at `at` is not an operation object — no `op` member, an
-  /// `op` that is not one of the six, or a member the operation requires
-  /// missing or of the wrong type. `at` is its position in the array.
-  Operation(at~ : Int32, why~ : String)
-  /// The pointer is not one (RFC 6901 §3): it does not start with a slash, or
-  /// a `~` is followed by anything but `0` or `1`.
-  Syntax(path~ : String, at~ : Int32)
-  /// What the pointer names is not there: a name no member has, or an index no
-  /// array reaches.
-  Missing(path~ : String, token~ : String)
-  /// The pointer walked into something that is neither an object nor an array.
-  NotContainer(path~ : String, token~ : String)
-  /// An array index that is not one — not decimal digits without a leading
-  /// zero — or `-` where it does not mean append.
-  BadIndex(path~ : String, token~ : String)
-  /// A test that did not hold.
-  TestFailed(path~ : String)
-  /// A move into one of the moved value's own children (RFC 6902 §4.4).
-  IntoChild(from~ : String, path~ : String)
-  /// The pointer names the root, which has no parent to take it from.
-  Root(path~ : String)
-} derive(Eq, Debug)
-
-///|
-pub extend Failure with Eq::{equal, not_equal}
-
-///|
-pub extend Failure with Debug::{to_repr}
-
-///|
 /// Read a patch document: the array of operations it names.
 ///
 /// The document itself is read as strict JSON — a patch is a protocol message
@@ -90,8 +51,8 @@ pub extend Failure with Debug::{to_repr}
 pub fn loads(
   input : StringView,
   flavor~ : @moonjson.Flavor = @moonjson.strict,
-) -> Array[Operation] raise Failure {
-  let tree = @moonjson.loads(input, flavor) catch { e => raise Unreadable(e) }
+) -> Array[Operation] raise @moonjson.Refused {
+  let tree = @moonjson.loads(input, flavor)
   operations(tree)
 }
 
@@ -101,10 +62,8 @@ pub fn load(
   input : BytesView,
   flavor~ : @moonjson.Flavor = @moonjson.strict,
   bom~ : Bool = true,
-) -> Array[Operation] raise Failure {
-  let tree = @moonjson.load(input, flavor, bom~) catch {
-    e => raise Unreadable(e)
-  }
+) -> Array[Operation] raise @moonjson.Refused {
+  let tree = @moonjson.load(input, flavor, bom~)
   operations(tree)
 }
 
@@ -163,7 +122,7 @@ fn node(op : Operation) -> Json {
 
 ///|
 /// The tree a patch document names: an array of operation objects.
-fn operations(tree : Json) -> Array[Operation] raise Failure {
+fn operations(tree : Json) -> Array[Operation] raise @moonjson.Refused {
   match tree {
     Array(items) => {
       let out : Array[Operation] = []
@@ -172,7 +131,8 @@ fn operations(tree : Json) -> Array[Operation] raise Failure {
       }
       out
     }
-    _ => raise Document(why="a patch document is an array of operations")
+    _ =>
+      raise @moonjson.Document(why="a patch document is an array of operations")
   }
 }
 
@@ -183,13 +143,21 @@ fn operations(tree : Json) -> Array[Operation] raise Failure {
 /// says they must be — Appendix A.11 prints a patch carrying an extra `xyz`
 /// and expects it applied. A required member that is missing is still an
 /// error, which is what catches a misspelling.
-fn operation(at : Int32, item : Json) -> Operation raise Failure {
+fn operation(at : Int32, item : Json) -> Operation raise @moonjson.Refused {
   match item {
     Object(members) => {
       let op = match members.get("op") {
         Some(String(name)) => name
-        Some(_) => raise Operation(at~, why="the \"op\" member is not a string")
-        None => raise Operation(at~, why="an operation has no \"op\" member")
+        Some(_) =>
+          raise @moonjson.Operation(
+            at~,
+            why="the \"op\" member is not a string",
+          )
+        None =>
+          raise @moonjson.Operation(
+            at~,
+            why="an operation has no \"op\" member",
+          )
       }
       match op {
         "add" =>
@@ -218,10 +186,11 @@ fn operation(at : Int32, item : Json) -> Operation raise Failure {
             path=pointer_of(at, members, "path"),
             value=field(at, members, "value"),
           )
-        _ => raise Operation(at~, why="\"\{op}\" is not one of the six")
+        _ =>
+          raise @moonjson.Operation(at~, why="\"\{op}\" is not one of the six")
       }
     }
-    _ => raise Operation(at~, why="an operation is an object")
+    _ => raise @moonjson.Operation(at~, why="an operation is an object")
   }
 }
 
@@ -231,10 +200,10 @@ fn field(
   at : Int32,
   members : Map[String, Json],
   name : String,
-) -> Json raise Failure {
+) -> Json raise @moonjson.Refused {
   match members.get(name) {
     Some(value) => value
-    None => raise Operation(at~, why="no \"\{name}\" member")
+    None => raise @moonjson.Operation(at~, why="no \"\{name}\" member")
   }
 }
 
@@ -244,9 +213,13 @@ fn pointer_of(
   at : Int32,
   members : Map[String, Json],
   name : String,
-) -> String raise Failure {
+) -> String raise @moonjson.Refused {
   match field(at, members, name) {
     String(text) => text
-    _ => raise Operation(at~, why="the \"\{name}\" member is not a string")
+    _ =>
+      raise @moonjson.Operation(
+        at~,
+        why="the \"\{name}\" member is not a string",
+      )
   }
 }

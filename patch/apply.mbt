@@ -13,7 +13,10 @@
 /// It answers a new document rather than changing the one it was given, for
 /// the same reason [`@pointer.set`] does: a tree is shared, and a value reached
 /// through two pointers is one value.
-pub fn apply(doc : Json, patch : ArrayView[Operation]) -> Json raise Failure {
+pub fn apply(
+  doc : Json,
+  patch : ArrayView[Operation],
+) -> Json raise @moonjson.Refused {
   let mut out = doc
   for op in patch {
     out = step(out, op)
@@ -23,7 +26,7 @@ pub fn apply(doc : Json, patch : ArrayView[Operation]) -> Json raise Failure {
 
 ///|
 /// One operation against one document.
-fn step(doc : Json, op : Operation) -> Json raise Failure {
+fn step(doc : Json, op : Operation) -> Json raise @moonjson.Refused {
   match op {
     Add(path~, value~) => {
       let path_tokens = tokens_of(path)
@@ -41,7 +44,7 @@ fn step(doc : Json, op : Operation) -> Json raise Failure {
       let from_tokens = tokens_of(from)
       let path_tokens = tokens_of(path)
       guard !is_prefix(from_tokens, path_tokens) else {
-        raise IntoChild(from~, path~)
+        raise @moonjson.IntoChild(from~, path~)
       }
       let (rest, moved) = extract(doc, from, from_tokens)
       if from_tokens == path_tokens {
@@ -59,7 +62,7 @@ fn step(doc : Json, op : Operation) -> Json raise Failure {
     }
     Test(path~, value~) => {
       let held = fetch(doc, path)
-      guard held == value else { raise TestFailed(path~) }
+      guard held == value else { raise @moonjson.TestFailed(path~) }
       doc
     }
   }
@@ -82,7 +85,7 @@ fn place(
   tokens : ArrayView[String],
   value : Json,
   insert~ : Bool,
-) -> Json raise Failure {
+) -> Json raise @moonjson.Refused {
   if tokens.length() == 0 {
     // The root: the value becomes the entire content of the document.
     return value
@@ -93,13 +96,13 @@ fn place(
       let rest = tokens[1:]
       let next = if rest.length() == 0 {
         if !insert && members.get(token) is None {
-          raise Missing(path~, token~)
+          raise @moonjson.Missing(path~, token~)
         }
         value
       } else {
         match members.get(token) {
           Some(found) => place(found, path, rest, value, insert~)
-          None => raise Missing(path~, token~)
+          None => raise @moonjson.Missing(path~, token~)
         }
       }
       let out : Map[String, Json] = Map([])
@@ -117,7 +120,7 @@ fn place(
           // The one place RFC 6901 §4 gives that token a meaning, and only an
           // `add` may use it: `-` names a place that does not exist yet, so
           // there is nothing there to replace.
-          guard insert else { raise BadIndex(path~, token~) }
+          guard insert else { raise @moonjson.BadIndex(path~, token~) }
           let out : Array[Json] = []
           for item in items {
             out.push(item)
@@ -126,12 +129,14 @@ fn place(
           return Json::array(out)
         }
         let index = index_of(token)
-        guard index >= 0 else { raise BadIndex(path~, token~) }
+        guard index >= 0 else { raise @moonjson.BadIndex(path~, token~) }
         let out : Array[Json] = []
         if insert {
           // The index may equal the length, which appends; past that is a
           // pointer to nowhere.
-          guard index <= items.length() else { raise Missing(path~, token~) }
+          guard index <= items.length() else {
+            raise @moonjson.Missing(path~, token~)
+          }
           for at, item in items {
             if at == index {
               out.push(value)
@@ -142,7 +147,9 @@ fn place(
             out.push(value)
           }
         } else {
-          guard index < items.length() else { raise Missing(path~, token~) }
+          guard index < items.length() else {
+            raise @moonjson.Missing(path~, token~)
+          }
           for at, item in items {
             out.push(if at == index { value } else { item })
           }
@@ -150,8 +157,10 @@ fn place(
         return Json::array(out)
       }
       let index = index_of(token)
-      guard index >= 0 else { raise BadIndex(path~, token~) }
-      guard index < items.length() else { raise Missing(path~, token~) }
+      guard index >= 0 else { raise @moonjson.BadIndex(path~, token~) }
+      guard index < items.length() else {
+        raise @moonjson.Missing(path~, token~)
+      }
       let out : Array[Json] = []
       for at, item in items {
         if at == index {
@@ -162,7 +171,7 @@ fn place(
       }
       Json::array(out)
     }
-    _ => raise NotContainer(path~, token=tokens[0])
+    _ => raise @moonjson.NotContainer(path~, token=tokens[0])
   }
 }
 
@@ -174,18 +183,18 @@ fn extract(
   doc : Json,
   path : String,
   tokens : ArrayView[String],
-) -> (Json, Json) raise Failure {
+) -> (Json, Json) raise @moonjson.Refused {
   if tokens.length() == 0 {
     // The root names the whole document; there would be nothing to answer
     // with.
-    raise Root(path~)
+    raise @moonjson.Root(path~)
   }
   match doc {
     Object(members) => {
       let token = tokens[0]
       let rest = tokens[1:]
       guard members.get(token) is Some(found) else {
-        raise Missing(path~, token~)
+        raise @moonjson.Missing(path~, token~)
       }
       let out : Map[String, Json] = Map([])
       if rest.length() == 0 {
@@ -208,8 +217,10 @@ fn extract(
       let token = tokens[0]
       let rest = tokens[1:]
       let index = index_of(token)
-      guard index >= 0 else { raise BadIndex(path~, token~) }
-      guard index < items.length() else { raise Missing(path~, token~) }
+      guard index >= 0 else { raise @moonjson.BadIndex(path~, token~) }
+      guard index < items.length() else {
+        raise @moonjson.Missing(path~, token~)
+      }
       let out : Array[Json] = []
       let mut value = Json::null()
       for at, item in items {
@@ -225,7 +236,7 @@ fn extract(
       }
       (Json::array(out), value)
     }
-    _ => raise NotContainer(path~, token=tokens[0])
+    _ => raise @moonjson.NotContainer(path~, token=tokens[0])
   }
 }
 
@@ -233,29 +244,15 @@ fn extract(
 /// Read what a pointer leads to, as `test` and the `from` of a `copy` need it.
 /// `-` is refused here even though RFC 6901 §4 names it: it means one past the
 /// last element, which exists only for an `add`.
-fn fetch(doc : Json, path : String) -> Json raise Failure {
-  @pointer.get(doc, path[:]) catch {
-    e => raise blame(path, e)
-  }
+fn fetch(doc : Json, path : String) -> Json raise @moonjson.Refused {
+  @pointer.get(doc, path[:])
 }
 
 ///|
 /// Split a pointer into the names it walks through, naming the pointer if it
 /// is not one.
-fn tokens_of(path : String) -> Array[String] raise Failure {
-  @pointer.tokens(path[:]) catch {
-    e => raise blame(path, e)
-  }
-}
-
-///|
-/// A pointer failure, named by the pointer that caused it.
-fn blame(path : String, e : @pointer.Bad) -> Failure {
-  match e {
-    @pointer.Bad::Syntax(at~) => Failure::Syntax(path~, at~)
-    @pointer.Bad::Missing(token~) => Failure::Missing(path~, token~)
-    @pointer.Bad::NotContainer(token~) => Failure::NotContainer(path~, token~)
-  }
+fn tokens_of(path : String) -> Array[String] raise @moonjson.Refused {
+  @pointer.tokens(path[:])
 }
 
 ///|

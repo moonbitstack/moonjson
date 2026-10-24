@@ -5,5 +5,9 @@
 // `~01` into a slash.
 
 import {
+  "moonbitstack/moonjson",
+}
+
+import {
   "moonbitstack/moonjson/json",
 } for "test"

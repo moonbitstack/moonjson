@@ -144,7 +144,7 @@ and the pointers inside it are the same ones `@pointer` reads.
 
 ## Failures
 
-Reading raises `Malformed`, which says what went wrong and where — offset, line
+Reading raises `Refused`, which says what went wrong and where — offset, line
 and column:
 
 ```moonbit

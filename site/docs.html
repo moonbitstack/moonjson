@@ -207,7 +207,7 @@
               <p>
                 The root package: the scanner the dialects share, the writer
                 that puts a tree back as strict JSON, the <code>Flavor</code>
-                record, and <code>Malformed</code>.
+                record, and <code>Refused</code>.
               </p>
             </div>
           </section>
@@ -349,7 +349,7 @@ let ops = @patch.loads(
               <div class="kicker">failures</div>
               <h2>What went wrong, and where</h2>
               <p>
-                Reading raises <code>Malformed</code>, which says what went
+                Reading raises <code>Refused</code>, which says what went
                 wrong and where — offset, line and column. Nesting is refused
                 past 500 levels rather than taken to the stack.
               </p>

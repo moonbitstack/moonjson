@@ -78,34 +78,34 @@ test "a pointer that leads nowhere" {
     assert_false(@pointer.has(tree, path))
   }
   try @pointer.get(tree, "/z") |> ignore catch {
-    e => assert_eq(e, Missing(token="z"))
+    e => assert_eq(e, @moonjson.Missing(path="/z", token="z"))
   } noraise {
     _ => fail("a name no member has resolved")
   }
   // `-` is the index one past the end. It exists for JSON Patch's `add` and
   // names no value, so reading through it is a miss, not an invention.
   try @pointer.get(tree, "/a/-") |> ignore catch {
-    e => assert_eq(e, Missing(token="-"))
+    e => assert_eq(e, @moonjson.BadIndex(path="/a/-", token="-"))
   } noraise {
     _ => fail("the one-past-the-end index resolved")
   }
   try @pointer.get(tree, "/n/x") |> ignore catch {
-    e => assert_eq(e, NotContainer(token="x"))
+    e => assert_eq(e, @moonjson.NotContainer(path="/n/x", token="x"))
   } noraise {
     _ => fail("a pointer walked into a number")
   }
   try @pointer.get(tree, "a") |> ignore catch {
-    e => assert_eq(e, Syntax(at=0))
+    e => assert_eq(e, @moonjson.Syntax(path="a", at=0))
   } noraise {
     _ => fail("a pointer without a leading slash resolved")
   }
   try @pointer.get(tree, "/~2") |> ignore catch {
-    e => assert_eq(e, Syntax(at=1))
+    e => assert_eq(e, @moonjson.Syntax(path="/~2", at=1))
   } noraise {
     _ => fail("an unknown escape resolved")
   }
   try @pointer.get(tree, "/~") |> ignore catch {
-    e => assert_eq(e, Syntax(at=1))
+    e => assert_eq(e, @moonjson.Syntax(path="/~", at=1))
   } noraise {
     _ => fail("a trailing tilde resolved")
   }

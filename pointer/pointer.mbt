@@ -2,36 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 ///|
-/// Why a pointer did not lead anywhere.
-pub(all) suberror Bad {
-  /// A pointer that is not empty and does not start with a slash (RFC 6901 §3),
-  /// or a `~` followed by anything but `0` or `1`.
-  Syntax(at~ : Int32)
-  /// A name no object has, or an index no array reaches.
-  Missing(token~ : String)
-  /// A token used where the document holds neither an object nor an array — a
-  /// pointer that walks into a number and keeps going.
-  NotContainer(token~ : String)
-} derive(Eq, Debug)
-
-///|
-pub extend Bad with Eq::{equal, not_equal}
-
-///|
-pub extend Bad with Debug::{to_repr}
-
-///|
 /// Split a pointer into the names it walks through, undoing the escapes.
 ///
 /// The empty pointer names the whole document and yields no tokens; `"/"` names
 /// the member whose name is empty and yields one.
-pub fn tokens(pointer : StringView) -> Array[String] raise Bad {
+pub fn tokens(pointer : StringView) -> Array[String] raise @moonjson.Refused {
   let out : Array[String] = []
   if pointer.length() == 0 {
     return out
   }
   if pointer.at(0).to_int() != 0x2F {
-    raise Syntax(at=0)
+    raise @moonjson.Syntax(path=pointer.to_owned(), at=0)
   }
   let piece = StringBuilder()
   let mut i = 1
@@ -44,7 +25,7 @@ pub fn tokens(pointer : StringView) -> Array[String] raise Bad {
         (if i + 1 < pointer.length() { pointer.at(i + 1).to_int() } else { -1 }) {
         0x30 => piece.write_char('~')
         0x31 => piece.write_char('/')
-        _ => raise Syntax(at=i)
+        _ => raise @moonjson.Syntax(path=pointer.to_owned(), at=i)
       }
       i += 1
     } else {
@@ -86,10 +67,10 @@ pub fn join(names : ArrayView[String]) -> String {
 /// `-` as an array index is refused here even though RFC 6901 §4 names it: it
 /// means "one past the last element", which exists only for JSON Patch's `add`,
 /// and returning something for it would be inventing a value.
-pub fn get(doc : Json, pointer : StringView) -> Json raise Bad {
+pub fn get(doc : Json, pointer : StringView) -> Json raise @moonjson.Refused {
   let mut here = doc
   for token in tokens(pointer) {
-    here = step(here, token)
+    here = step(here, token, pointer)
   }
   here
 }
@@ -107,21 +88,31 @@ pub fn has(doc : Json, pointer : StringView) -> Bool {
 }
 
 ///|
-fn step(here : Json, token : String) -> Json raise Bad {
+/// One step down, with the whole pointer carried along so a failure can say
+/// which of its tokens it happened on.
+fn step(
+  here : Json,
+  token : String,
+  pointer : StringView,
+) -> Json raise @moonjson.Refused {
+  let path = pointer.to_owned()
   match here {
     Object(members) =>
       match members.get(token) {
         Some(next) => next
-        None => raise Missing(token~)
+        None => raise @moonjson.Missing(path~, token~)
       }
     Array(items) => {
       let index = index_of(token)
-      if index < 0 || index >= items.length() {
-        raise Missing(token~)
+      if index < 0 {
+        raise @moonjson.BadIndex(path~, token~)
+      }
+      if index >= items.length() {
+        raise @moonjson.Missing(path~, token~)
       }
       items[index]
     }
-    _ => raise NotContainer(token~)
+    _ => raise @moonjson.NotContainer(path~, token~)
   }
 }
 

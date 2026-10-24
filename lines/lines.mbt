@@ -11,7 +11,7 @@
 pub fn loads_all(
   input : StringView,
   flavor~ : @moonjson.Flavor = @moonjson.strict,
-) -> Array[Json] raise @moonjson.Malformed {
+) -> Array[Json] raise @moonjson.Refused {
   let out : Array[Json] = []
   let mut start = 0
   let mut i = 0
@@ -39,7 +39,7 @@ pub fn load_all(
   input : BytesView,
   flavor~ : @moonjson.Flavor = @moonjson.strict,
   bom~ : Bool = true,
-) -> Array[Json] raise @moonjson.Malformed {
+) -> Array[Json] raise @moonjson.Refused {
   let text = @utf8.decode(input, ignore_bom=bom) catch {
     _ => raise @moonjson.BadUtf8({ at: 0, line: 1, column: 1, })
   }

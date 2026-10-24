@@ -17,8 +17,12 @@
 /// ```moonbit nocheck
 /// let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
 /// ```
-pub fn set(doc : Json, pointer : StringView, value : Json) -> Json raise Bad {
-  place(doc, tokens(pointer)[:], value)
+pub fn set(
+  doc : Json,
+  pointer : StringView,
+  value : Json,
+) -> Json raise @moonjson.Refused {
+  place(doc, tokens(pointer)[:], value, pointer)
 }
 
 ///|
@@ -28,18 +32,26 @@ pub fn set(doc : Json, pointer : StringView, value : Json) -> Json raise Bad {
 /// away what was never there is a request nobody can have meant. The root cannot
 /// be removed — an empty pointer names the whole document, and there would be
 /// nothing left to answer with.
-pub fn remove(doc : Json, pointer : StringView) -> Json raise Bad {
+pub fn remove(doc : Json, pointer : StringView) -> Json raise @moonjson.Refused {
   let path = tokens(pointer)
-  guard path.length() > 0 else { raise Bad::Syntax(at=0) }
-  drop(doc, path[:])
+  if path.length() == 0 {
+    raise @moonjson.Root(path=pointer.to_owned())
+  }
+  drop(doc, path[:], pointer)
 }
 
 ///|
 /// Rebuild the path down to the edit, leaving everything beside it untouched.
-fn place(here : Json, path : ArrayView[String], value : Json) -> Json raise Bad {
+fn place(
+  here : Json,
+  path : ArrayView[String],
+  value : Json,
+  pointer : StringView,
+) -> Json raise @moonjson.Refused {
   if path.length() == 0 {
     return value
   }
+  let path_text = pointer.to_owned()
   let token = path[0]
   let rest = path[1:]
   match here {
@@ -49,7 +61,7 @@ fn place(here : Json, path : ArrayView[String], value : Json) -> Json raise Bad 
         out[name] = held
       }
       let next = match members.get(token) {
-        Some(found) => place(found, rest, value)
+        Some(found) => place(found, rest, value, pointer)
         None =>
           if rest.length() == 0 {
             value
@@ -57,7 +69,7 @@ fn place(here : Json, path : ArrayView[String], value : Json) -> Json raise Bad 
             // A pointer that runs past the end of the document is a pointer to
             // nowhere; inventing the objects along the way would make a typo
             // succeed.
-            raise Missing(token~)
+            raise @moonjson.Missing(path=path_text, token~)
           }
       }
       out[token] = next
@@ -69,27 +81,39 @@ fn place(here : Json, path : ArrayView[String], value : Json) -> Json raise Bad 
         out.push(item)
       }
       if token == "-" {
-        guard rest.length() == 0 else { raise Missing(token~) }
+        if rest.length() != 0 {
+          raise @moonjson.Missing(path=path_text, token~)
+        }
         out.push(value)
         return Json::array(out)
       }
       let index = index_of(token)
-      guard index >= 0 && index < items.length() else { raise Missing(token~) }
-      out[index] = place(items[index], rest, value)
+      if index < 0 || index >= items.length() {
+        raise @moonjson.Missing(path=path_text, token~)
+      }
+      out[index] = place(items[index], rest, value, pointer)
       Json::array(out)
     }
-    _ => raise NotContainer(token~)
+    _ => raise @moonjson.NotContainer(path=path_text, token~)
   }
 }
 
 ///|
 /// The same rebuild, taking the last step away instead of replacing it.
-fn drop(here : Json, path : ArrayView[String]) -> Json raise Bad {
+fn drop(
+  here : Json,
+  path : ArrayView[String],
+  pointer : StringView,
+) -> Json raise @moonjson.Refused {
+  let path_text = pointer.to_owned()
   let token = path[0]
   let rest = path[1:]
   match here {
     Object(members) => {
-      guard members.get(token) is Some(found) else { raise Missing(token~) }
+      let found = members.get(token)
+      if found is None {
+        raise @moonjson.Missing(path=path_text, token~)
+      }
       let out : Map[String, Json] = Map([])
       for name, held in members {
         if name != token {
@@ -97,23 +121,25 @@ fn drop(here : Json, path : ArrayView[String]) -> Json raise Bad {
         }
       }
       if rest.length() > 0 {
-        out[token] = drop(found, rest)
+        out[token] = drop(found.unwrap(), rest, pointer)
       }
       Json::object(out)
     }
     Array(items) => {
       let index = index_of(token)
-      guard index >= 0 && index < items.length() else { raise Missing(token~) }
+      if index < 0 || index >= items.length() {
+        raise @moonjson.Missing(path=path_text, token~)
+      }
       let out : Array[Json] = []
       for i, item in items {
         if i != index {
           out.push(item)
         } else if rest.length() > 0 {
-          out.push(drop(item, rest))
+          out.push(drop(item, rest, pointer))
         }
       }
       Json::array(out)
     }
-    _ => raise NotContainer(token~)
+    _ => raise @moonjson.NotContainer(path=path_text, token~)
   }
 }

@@ -60,7 +60,7 @@ fn main raise {
   // A failure says where it happened.
   try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") |> ignore catch {
     e => {
-      let spot = e.at()
+      let spot = e.at().unwrap()
       println("failure       -> line \{spot.line}, column \{spot.column}")
     }
   } noraise {

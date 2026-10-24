@@ -10,9 +10,9 @@ pub fn dump_all(ArrayView[Json], ascii? : Bool, sort? : Bool) -> Bytes
 
 pub fn dumps_all(ArrayView[Json], ascii? : Bool, sort? : Bool) -> String
 
-pub fn load_all(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> Array[Json] raise @moonjson.Malformed
+pub fn load_all(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> Array[Json] raise @moonjson.Refused
 
-pub fn loads_all(StringView, flavor? : @moonjson.Flavor) -> Array[Json] raise @moonjson.Malformed
+pub fn loads_all(StringView, flavor? : @moonjson.Flavor) -> Array[Json] raise @moonjson.Refused
 
 // Errors
 

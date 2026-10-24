@@ -191,7 +191,7 @@ test "values come out as themselves" {
 test "a failure names the line and the column" {
   try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") |> ignore catch {
     e => {
-      let spot = e.at()
+      let spot = e.at().unwrap()
       assert_eq(spot.line, 3)
       assert_eq(spot.column, 8)
       assert_eq(e, Unexpected(spot, '?'))
@@ -205,7 +205,7 @@ test "a failure names the line and the column" {
     _ => fail("a truncated array was accepted")
   }
   try @json.loads("[1] [2]") |> ignore catch {
-    e => assert_eq(e.at().at, 4)
+    e => assert_eq(e.at().unwrap().at, 4)
   } noraise {
     _ => fail("two documents were read as one")
   }

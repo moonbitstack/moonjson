@@ -10,7 +10,7 @@
 pub fn loads(
   input : StringView,
   flavor~ : @moonjson.Flavor = @moonjson.strict,
-) -> Json raise @moonjson.Malformed {
+) -> Json raise @moonjson.Refused {
   @moonjson.loads(input, flavor)
 }
 
@@ -20,7 +20,7 @@ pub fn load(
   input : BytesView,
   flavor~ : @moonjson.Flavor = @moonjson.strict,
   bom~ : Bool = true,
-) -> Json raise @moonjson.Malformed {
+) -> Json raise @moonjson.Refused {
   @moonjson.load(input, flavor, bom~)
 }
 

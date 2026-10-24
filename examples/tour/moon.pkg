@@ -2,11 +2,15 @@
 pkgtype(kind: "executable")
 
 import {
+  "moonbitstack/moonjson/cbor",
   "moonbitstack/moonjson/json",
+  "moonbitstack/moonjson/jcs",
+  "moonbitstack/moonjson/path",
   "moonbitstack/moonjson/jsonc",
   "moonbitstack/moonjson/json5",
   "moonbitstack/moonjson/lines",
   "moonbitstack/moonjson/merge",
   "moonbitstack/moonjson/patch",
   "moonbitstack/moonjson/pointer",
+  "moonbitlang/core/encoding/hex",
 }

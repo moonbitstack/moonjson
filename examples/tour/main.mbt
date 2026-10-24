@@ -57,6 +57,22 @@ fn main raise {
     "merge         -> \{@json.dumps(@merge.merge(plain, @json.loads(patch_text)))}",
   )
 
+  // A query rather than a pointer: every book under ten, wherever it is.
+  let shelf = @json.loads(
+    "{\"store\":{\"book\":[{\"title\":\"A\",\"price\":8.95},{\"title\":\"B\",\"price\":12.99},{\"title\":\"C\",\"price\":8.99}]}}",
+  )
+  let cheap = @path.select(shelf, "$..book[?@.price<10].title")
+  println("jsonpath      -> \{@json.dumps(Json::array(cheap))}")
+
+  // The same tree as bytes, and back. Nothing about the document changed with
+  // the notation.
+  let body = @cbor.dump(plain)
+  println("cbor          -> \{@hex.encode(body[:])}")
+  println("cbor == json  -> \{@cbor.load(body[:]) == plain}")
+
+  // One document, one sequence of bytes — what a signature is taken over.
+  println("canonical     -> \{@jcs.dumps(plain)}")
+
   // A failure says where it happened.
   try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") |> ignore catch {
     e => {

@@ -203,11 +203,85 @@
                 <code>@json.loads</code> — so this package holds the evaluation
                 and nothing else, and it never fails.
               </p>
+              <h3 id="path">path</h3>
+              <p>
+                JSONPath, RFC 9535: a query language over the tree. Name, index,
+                wildcard, slice and filter selectors; child and descendant
+                segments; the five functions <code>length</code>,
+                <code>count</code>, <code>match</code>, <code>search</code> and
+                <code>value</code>. A query is compiled once and then run
+                against any number of documents, because a filter is evaluated
+                once per node and a string parsed per node would be a parser in
+                the hot loop.
+              </p>
+              <div class="code-card">
+                <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+                <pre data-lang="moonbit">let cheap = @path.select(doc, "$..book[?@.price &lt; 10].title")
+let query = @path.compile("$.store.*")       // once
+let found = query.select(doc)                 // as often as you like</pre>
+              </div>
+              <p>
+                <code>match</code> and <code>search</code> take I-Regexp,
+                RFC 9485's restricted ECMA-262 — no backreferences, no
+                lookaround, no flags. It is a small backtracking matcher on code
+                points, in the package, because the alternative was the only
+                dependency in the module that is not core.
+              </p>
+              <h3 id="jcs">jcs</h3>
+              <p>
+                JSON Canonicalisation Scheme, RFC 8785: one document, one
+                sequence of bytes, so that two parties signing the same values
+                sign the same bytes. Members sort by UTF-16 code unit — not by
+                code point, which differs above U+FFFF — numbers are written the
+                way ECMAScript writes them, and nothing above U+001F is escaped.
+                A number that is not finite has no canonical form and is
+                refused rather than replaced with <code>null</code>.
+              </p>
+              <h3 id="binary">cbor, msgpack, bson</h3>
+              <p>
+                Three binary encodings, each with its own package and its own
+                specification, all reading and writing the same tree. CBOR is
+                RFC 8949 and has tags; MessagePack has extension types; BSON has
+                ObjectId, dates, decimal128 and a dozen more. Writing fills in
+                the shortest form the format defines; reading keeps everything.
+              </p>
+              <div class="code-card">
+                <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+                <pre data-lang="moonbit">let body = @cbor.dump(doc)         // the same tree as bytes
+let again = @cbor.load(body)       // and back, unchanged
+@json.dumps(@msgpack.load(@msgpack.dump(doc)))
+@bson.dump(@json.loads("{\"$oid\":\"507f1f77bcf86cd799439011\"}"))</pre>
+              </div>
+              <p>
+                What JSON has no syntax for travels as a marker, so a value that
+                came from BSON survives a trip through JSON:
+              </p>
+              <table>
+                <thead><tr><th>Value</th><th>Marker</th></tr></thead>
+                <tbody>
+                  <tr><td>byte string</td><td><code>{"$bytes": "0102"}</code></td></tr>
+                  <tr><td>CBOR tag</td><td><code>{"$tag": 1, "value": …}</code></td></tr>
+                  <tr><td>MessagePack extension</td><td><code>{"$ext": 1, "data": "0102"}</code></td></tr>
+                  <tr><td><code>undefined</code></td><td><code>{"$undefined": true}</code></td></tr>
+                  <tr><td>non-string map key</td><td><code>{"$map": [[1, 2]]}</code></td></tr>
+                  <tr><td>ObjectId</td><td><code>{"$oid": "507f…"}</code></td></tr>
+                  <tr><td>UTC datetime</td><td><code>{"$date": 1356350400000}</code></td></tr>
+                </tbody>
+              </table>
+              <p>
+                A marker name is reserved: an object whose only member is
+                <code>$oid</code> is an ObjectId. That is the same bargain
+                MongoDB's Extended JSON makes, and for the same reason — a tree
+                with one object type needs one reserved name.
+              </p>
               <h3 id="flavor">moonjson</h3>
               <p>
                 The root package: the scanner the dialects share, the writer
                 that puts a tree back as strict JSON, the <code>Flavor</code>
-                record, and <code>Refused</code>.
+                record, and <code>Refused</code> — one error type for the whole
+                family, so there is one thing to catch. Its variants carry an
+                <code>At</code> when the failure is in text, and a byte offset or
+                a path when it is not.
               </p>
             </div>
           </section>

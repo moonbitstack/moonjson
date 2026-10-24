@@ -161,9 +161,10 @@
             <div class="kicker">the packages</div>
             <h2>A tree, and every dialect that reads and writes one</h2>
             <p>
-              Each has the same four faces, so learning one is learning all of
-              them. Writing is always strict JSON, whatever the document was
-              written in.
+              One tree, and a package for each way of writing it. The text
+              dialects have the same four faces; the binary formats have the two
+              that take bytes. Writing is always strict JSON, whatever the
+              document was written in.
             </p>
           </div>
           <div class="grid">
@@ -195,9 +196,29 @@
               <span class="name">merge <span class="spec">RFC 7396</span></span>
               <p>A patch that looks like the document; a <code>null</code> takes a member away.</p>
             </a>
+            <a class="pkg" href="docs.html#path">
+              <span class="name">path <span class="spec">RFC 9535</span></span>
+              <p>A query language over the tree: segments, slices, filters, and five functions.</p>
+            </a>
+            <a class="pkg" href="docs.html#jcs">
+              <span class="name">jcs <span class="spec">RFC 8785</span></span>
+              <p>One document, one sequence of bytes — what a signature is taken over.</p>
+            </a>
+            <a class="pkg" href="docs.html#binary">
+              <span class="name">cbor <span class="spec">RFC 8949</span></span>
+              <p>The binary encoding JSON's own working group wrote, read and written byte for byte.</p>
+            </a>
+            <a class="pkg" href="docs.html#binary">
+              <span class="name">msgpack <span class="spec">msgpack.org</span></span>
+              <p>Short headers, byte strings, extension types; every format in the specification.</p>
+            </a>
+            <a class="pkg" href="docs.html#binary">
+              <span class="name">bson <span class="spec">bsonspec.org</span></span>
+              <p>What MongoDB stores: ObjectId, dates, decimal128, timestamps, the lot.</p>
+            </a>
             <a class="pkg" href="docs.html#flavor">
               <span class="name">moonjson <span class="spec">the shared core</span></span>
-              <p>The scanner the dialects share, the writer, and <code>Flavor</code>.</p>
+              <p>The scanner the dialects share, the writer, and one <code>Refused</code> for the family.</p>
             </a>
           </div>
         </section>
@@ -261,6 +282,10 @@ pointer       -&gt; 20
 missing       -&gt; false
 patch         -&gt; {"host":"localhost","port":9090,"tls":true}
 merge         -&gt; {"host":"localhost","port":9090}
+jsonpath      -&gt; ["A","C"]
+cbor          -&gt; a363746c73f464686f7374696c6f63616c686f737464706f7274191f90
+cbor == json  -&gt; true
+canonical     -&gt; {"host":"localhost","port":8080,"tls":false}
 failure       -&gt; line 3, column 8</span></pre>
           </div>
         </section>

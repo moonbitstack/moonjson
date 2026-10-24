@@ -81,15 +81,6 @@ pub fn load(
 }
 
 ///|
-/// The same, from a `Bytes` — how a body arrives.
-pub fn loads(
-  input : Bytes,
-  policy~ : Policy = policy,
-) -> Json raise @moonjson.Refused {
-  load(input[:], policy~)
-}
-
-///|
 /// Write a tree as CBOR.
 pub fn dump(
   value : Json,

@@ -1,0 +1,18 @@
+// MessagePack: https://github.com/msgpack/msgpack/blob/master/spec.md
+//
+// MessagePack is CBOR's older cousin: the same data model, a different header,
+// and no tags. Two things it has that JSON has not are a byte string and an
+// extension type, and both are carried in the markers documented on `load` —
+// the same markers CBOR uses for bytes, so a document moved from one to the
+// other keeps its bytes.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/double",
+  "moonbitlang/core/encoding/hex",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

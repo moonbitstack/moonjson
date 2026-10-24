@@ -22,7 +22,7 @@ fn write(
         buf.write_uint16_be(count.to_uint16())
       } else {
         buf.write_byte(0xDD)
-        buf.write_uint_be(count.to_uint())
+        buf.write_uint_be(count.reinterpret_as_uint())
       }
       for item in items {
         write(buf, item, policy)
@@ -46,7 +46,7 @@ fn text(buf : Buffer, s : StringView) -> Unit {
     buf.write_uint16_be(count.to_uint16())
   } else {
     buf.write_byte(0xDB)
-    buf.write_uint_be(count.to_uint())
+    buf.write_uint_be(count.reinterpret_as_uint())
   }
   buf.write_bytes(bytes[:])
 }
@@ -62,7 +62,7 @@ fn binary(buf : Buffer, bytes : Bytes) -> Unit {
     buf.write_uint16_be(count.to_uint16())
   } else {
     buf.write_byte(0xC6)
-    buf.write_uint_be(count.to_uint())
+    buf.write_uint_be(count.reinterpret_as_uint())
   }
   buf.write_bytes(bytes[:])
 }
@@ -98,7 +98,7 @@ fn extension(buf : Buffer, kind : Int32, bytes : Bytes) -> Unit {
     buf.write_uint16_be(count.to_uint16())
   } else {
     buf.write_byte(0xC9)
-    buf.write_uint_be(count.to_uint())
+    buf.write_uint_be(count.reinterpret_as_uint())
   }
   buf.write_byte(kind.to_byte())
   buf.write_bytes(bytes[:])
@@ -140,7 +140,7 @@ fn object(
     buf.write_uint16_be(count.to_uint16())
   } else {
     buf.write_byte(0xDF)
-    buf.write_uint_be(count.to_uint())
+    buf.write_uint_be(count.reinterpret_as_uint())
   }
   for name, held in members {
     text(buf, name[:])
@@ -266,22 +266,4 @@ fn magnitude(text : StringView) -> UInt64? {
     value = value * 10UL + digit
   }
   Some(value)
-}
-
-///|
-fn decrement(text : String) -> String {
-  let mut i = text.length() - 1
-  while i >= 0 && text.at(i).to_int() == 0x30 {
-    i -= 1
-  }
-  if i < 0 {
-    return "0"
-  }
-  let out = StringBuilder()
-  out.write_view(text[:i])
-  out.write_char((text.at(i).to_int() - 1).unsafe_to_char())
-  for _ in 0..<(text.length() - i - 1) {
-    out.write_char('9')
-  }
-  out.to_string()
 }

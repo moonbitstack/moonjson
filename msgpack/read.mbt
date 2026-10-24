@@ -20,15 +20,6 @@ fn Reader::byte(self : Reader) -> Int32 raise @moonjson.Refused {
 }
 
 ///|
-fn Reader::peek(self : Reader) -> Int32 {
-  if self.i < self.src.length() {
-    self.src.at(self.i).to_int()
-  } else {
-    -1
-  }
-}
-
-///|
 fn Reader::uint(self : Reader, n : Int32) -> UInt64 raise @moonjson.Refused {
   if self.i + n > self.src.length() {
     raise @moonjson.Short(at=self.src.length())

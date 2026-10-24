@@ -11,8 +11,6 @@ pub fn dump(Json, policy? : Policy) -> Bytes raise @moonjson.Refused
 
 pub fn load(BytesView, policy? : Policy) -> Json raise @moonjson.Refused
 
-pub fn loads(Bytes, policy? : Policy) -> Json raise @moonjson.Refused
-
 pub let policy : Policy
 
 // Errors

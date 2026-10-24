@@ -10,7 +10,6 @@ import {
   "moonbitlang/core/double",
   "moonbitlang/core/encoding/hex",
   "moonbitlang/core/encoding/utf8",
-  "moonbitlang/core/string",
 }
 
 import {

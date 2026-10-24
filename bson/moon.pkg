@@ -1,0 +1,16 @@
+// BSON, from bsonspec.org: https://bsonspec.org/spec.html
+//
+// BSON is what MongoDB stores and puts on the wire: little-endian, length-first,
+// and richer than JSON by eleven types. Every one of them has a marker here, so
+// nothing it carries is lost — an ObjectId stays twelve bytes, a decimal128
+// stays sixteen, and a timestamp stays two 32-bit halves.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/double",
+  "moonbitlang/core/encoding/hex",
+  "moonbitlang/core/encoding/utf8",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

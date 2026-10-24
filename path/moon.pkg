@@ -1,0 +1,12 @@
+// JSONPath, RFC 9535: https://www.rfc-editor.org/rfc/rfc9535
+//
+// A query is compiled once into selectors and then run against any number of
+// documents: a string on every call would parse the same query for every node
+// it touches, and a filter is evaluated once per node.
+import {
+  "moonbitstack/moonjson",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

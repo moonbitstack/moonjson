@@ -1,0 +1,69 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/path"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitstack/moonjson",
+}
+
+// Values
+pub fn alike(Json, Json) -> Bool
+
+pub fn compile(StringView) -> Path raise @moonjson.Refused
+
+pub fn finds(StringView, StringView) -> Bool raise @moonjson.Refused
+
+pub fn matches(StringView, StringView) -> Bool raise @moonjson.Refused
+
+pub fn select(Json, StringView) -> Array[Json] raise @moonjson.Refused
+
+// Errors
+
+// Types and methods
+pub(all) enum Op {
+  Eq
+  Ne
+  Lt
+  Le
+  Gt
+  Ge
+} derive(Eq, @debug.Debug)
+pub fn Op::equal(Self, Self) -> Bool
+pub fn Op::not_equal(Self, Self) -> Bool
+pub fn Op::to_repr(Self) -> @debug.Repr
+
+pub(all) enum Operand {
+  Const(Json)
+  Nodes(root~ : Bool, segments~ : Array[Segment])
+  Call(name~ : String, args~ : Array[Operand])
+}
+
+pub(all) struct Path {
+  segments : Array[Segment]
+}
+pub fn Path::select(Self, Json) -> Array[Json]
+
+pub(all) enum Segment {
+  Child(Array[Selector])
+  Descendant(Array[Selector])
+}
+
+pub(all) enum Selector {
+  Name(String)
+  Index(Int32)
+  Wildcard
+  Slice(start~ : Int32?, end~ : Int32?, step~ : Int32?)
+  Filter(Test)
+}
+
+pub(all) enum Test {
+  Or(Test, Test)
+  And(Test, Test)
+  Not(Test)
+  Exists(Operand)
+  Compare(Operand, Op, Operand)
+}
+
+// Type aliases
+
+// Traits

@@ -1,6 +1,6 @@
 name = "moonbitstack/moonjson"
 
-version = "0.4.0"
+version = "0.4.1"
 
 readme = "README.md"
 
@@ -8,17 +8,6 @@ repository = "https://github.com/moonbitstack/moonjson"
 
 license = "Apache-2.0"
 
-keywords = [
-  "json",
-  "json5",
-  "jsonc",
-  "jsonlines",
-  "ndjson",
-  "json-pointer",
-  "json-patch",
-  "merge-patch",
-  "parser",
-  "moonbit",
-]
+keywords = [ "json", "cbor", "moonbit" ]
 
-description = "moonjson — the JSON family for MoonBit: RFC 8259 JSON, JSONC, JSON5 and JSON Lines over one data model, with JSON Pointer, JSON Patch and Merge Patch, and failures that name the line and column."
+description = "The JSON family for MoonBit."

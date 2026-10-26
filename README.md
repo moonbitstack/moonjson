@@ -18,14 +18,14 @@ Run `moon run examples/tour` for the whole surface in one go.
 
 ## The surface
 
-One set of verbs, the ones Python's `json`, PyYAML and `tomllib` share:
+One set of verbs across the family:
 
 |  | text → tree | bytes → tree | tree → text | tree → bytes |
 |:--:|:--:|:--:|:--:|:--:|
 | one document | `loads` | `load` | `dumps` | `dump` |
 | a stream of them | `loads_all` | `load_all` | `dumps_all` | `dump_all` |
 
-The `s` is on the form that takes or answers a string, as it is in Python. The
+The `s` is on the form that takes or answers a string. The
 plural set exists **exactly where the format defines a stream** — `lines` is a
 stream and has only those; `json`, `jsonc` and `json5` define one document and
 have only the singular set. `moonyaml` follows the same rule and has both,
@@ -128,19 +128,19 @@ belongs. Writing is the other way round, so its three settings are arguments:
 @json.dumps(value, sort=true)           // members in order of name
 ```
 
-### The defaults, and where they come from
+### The defaults
 
 | Setting | Default | Why that one |
 |:--:|:--:|:--|
-| `depth` | 500 | Everyone bounds it and nobody agrees on the number — Jackson refuses past 1000, serde_json past 128. A hundred thousand open brackets is a denial of service, not a document |
-| `surrogates` | refuse | Implementations disagree and JSONTestSuite files these cases as implementation-defined, so the safer side is the default: a lone half cannot be written back out |
-| `duplicates` | `Last` | JavaScript, Python, Go and serde all keep the last one |
+| `depth` | 500 | A hundred thousand open brackets is a denial of service, not a document |
+| `surrogates` | refuse | The case is implementation-defined, so the safer side is the default: a lone half cannot be written back out |
+| `duplicates` | `Last` | The behaviour most readers already have |
 | `bom` | skipped | RFC 8259 §8.1 forbids writing one and says nothing about reading one; refusing would reject half of what Windows tooling produces |
-| `ascii` | off | A UTF-8 body is the normal case now. Python's `ensure_ascii` defaults the other way because it predates that |
+| `ascii` | off | A UTF-8 body is the normal case now |
 | `sort` | off | The order a document was written in is information; a diff is the reason to discard it, and a diff can ask |
 | CBOR `deterministic` | on | RFC 8949 §4.2 recommends it, and a hash or a signature over an encoding needs it. Off still writes valid CBOR, only longer |
 | CBOR `depth` | 500 | The same as the text reader, for the same reason |
-| MessagePack `floats` | `Double` | Python's `msgpack`, the reference implementation, writes doubles unless it is told otherwise |
+| MessagePack `floats` | `Double` | No precision is lost unless asked |
 | BSON `depth` | 500 | Documents nest inside documents exactly as brackets nest inside brackets |
 
 ## The tree
@@ -207,43 +207,6 @@ a hundred thousand open brackets is a denial of service, not a document.
 
 A lone half of a surrogate pair is refused. It is not a character, it cannot be
 written back out, and any value put in its place would be a guess.
-
-## What is checked
-
-Each package is measured against the document that defines it, not against
-itself:
-
-| Package | Criterion |
-|:--|:--|
-| `json` | JSONTestSuite, ninety-five cases whose verdicts come from a third-party parser |
-| `json5` | the document json5.org puts on its front page |
-| `pointer` | every example RFC 6901 §5 prints |
-| `patch` | every example RFC 6902 Appendix A prints, plus the error cases §5 names |
-| `merge` | every case RFC 7396 Appendix A prints |
-| `jcs` | the six published vectors of RFC 8785, byte for byte |
-| `cbor` | RFC 8949 Appendix A, read and written back byte for byte |
-| `msgpack` | the examples the MessagePack specification prints for each format |
-| `bson` | the two documents bsonspec.org prints, byte for byte |
-| `path` | RFC 9535 table 12, every query and every answer |
-
-Where a case is implementation-defined — a lone surrogate, a number too large
-for a double — the choice is written down above rather than left to be
-discovered.
-
-## What is not here yet
-
-PostgreSQL's and SQLite's `jsonb` — two incompatible binary layouts that each
-need their own package; Hjson, CSON, SuperJSON, NTV, UBJSON and Smile; and the
-streaming `Sink`/`Source` that moonbase uses. JSONTestSuite is run over the
-cases it was run over when this was written, not the whole corpus, and the
-JSONPath compliance suite is next: the RFC's own table passes, the suite's
-hundreds of cases have not been run yet. JSON Schema is `moonschema`'s.
-
-Each of these is a package of its own when it lands, because each is a notation
-and none of them changes the tree.
-
-YAML and TOML are their own repositories. HOCON and HCL belong with
-configuration, because their substitutions and merges are evaluation, not syntax.
 
 ## Install
 

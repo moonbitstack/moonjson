@@ -71,8 +71,6 @@
           <a href="#tree">The tree</a>
           <a href="#changing">Changing a document</a>
           <a href="#failures">Failures</a>
-          <a href="#checked">What is checked</a>
-          <a href="#roadmap">What is not here yet</a>
         </aside>
 
         <div class="docs-body">
@@ -81,9 +79,8 @@
               <div class="kicker">the surface</div>
               <h2>One set of verbs</h2>
               <p>
-                The verbs Python's <code>json</code>, PyYAML and
-                <code>tomllib</code> share. The <code>s</code> is on the form
-                that takes or answers a string, as it is in Python.
+                One set of verbs across the family. The <code>s</code> is on the
+                form that takes or answers a string.
               </p>
             </div>
             <div class="table-card">
@@ -324,17 +321,17 @@ let again = @cbor.load(body)       // and back, unchanged
                     <tr>
                       <td><code>depth</code></td>
                       <td>500</td>
-                      <td>Everyone bounds it and nobody agrees on the number — Jackson refuses past 1000, serde_json past 128. A hundred thousand open brackets is a denial of service, not a document.</td>
+                      <td>A hundred thousand open brackets is a denial of service, not a document.</td>
                     </tr>
                     <tr>
                       <td><code>surrogates</code></td>
                       <td>refuse</td>
-                      <td>Implementations disagree and JSONTestSuite files these cases as implementation-defined, so the safer side is the default: a lone half cannot be written back out.</td>
+                      <td>The case is implementation-defined, so the safer side is the default: a lone half cannot be written back out.</td>
                     </tr>
                     <tr>
                       <td><code>duplicates</code></td>
                       <td><code>Last</code></td>
-                      <td>JavaScript, Python, Go and serde all keep the last one.</td>
+                      <td>The behaviour most readers already have.</td>
                     </tr>
                     <tr>
                       <td><code>bom</code></td>
@@ -344,7 +341,7 @@ let again = @cbor.load(body)       // and back, unchanged
                     <tr>
                       <td><code>ascii</code></td>
                       <td>off</td>
-                      <td>A UTF-8 body is the normal case now. Python's <code>ensure_ascii</code> defaults the other way because it predates that.</td>
+                      <td>A UTF-8 body is the normal case now.</td>
                     </tr>
                     <tr>
                       <td><code>sort</code></td>
@@ -447,62 +444,6 @@ let ops = @patch.loads(
             </div>
           </section>
 
-          <section id="checked">
-            <div class="section-head">
-              <div class="kicker">checked</div>
-              <h2>What is measured, and against what</h2>
-            </div>
-            <div class="prose">
-              <ul>
-                <li>
-                  The strict parser, against cases drawn from JSONTestSuite —
-                  every verdict taken from a third-party parser rather than
-                  asserted from memory: 95 documents that must be accepted or
-                  refused, and are.
-                </li>
-                <li>
-                  JSON5, against the document json5.org puts on its front page.
-                </li>
-                <li>
-                  JSON Pointer, against every example RFC 6901 §5 prints.
-                </li>
-                <li>
-                  JSON Patch, against every example RFC 6902 Appendix A prints.
-                </li>
-                <li>
-                  JSON Merge Patch, against every case RFC 7396 Appendix A
-                  prints.
-                </li>
-              </ul>
-              <p>
-                Four backends — wasm, wasm-gc, js and native — run the whole
-                suite on every push.
-              </p>
-            </div>
-          </section>
-
-          <section id="roadmap">
-            <div class="section-head">
-              <div class="kicker">roadmap</div>
-              <h2>What is not here yet</h2>
-              <p>
-                Planned in this order; the tracking list lives with the project.
-              </p>
-            </div>
-            <div class="prose">
-              <ul>
-                <li>Hjson and the other text dialects.</li>
-                <li>CBOR, MessagePack, BSON and the other binary encodings.</li>
-                <li>PostgreSQL's and SQLite's <code>jsonb</code>.</li>
-                <li>JSONPath, JSON Schema and canonical serialisation.</li>
-              </ul>
-              <p>
-                YAML and TOML are their own repositories. HOCON and HCL belong
-                with configuration, because their substitutions and merges are
-                evaluation, not syntax.
-              </p>
-            </div>
-          </section>
         </div>
       </div>
     </main>

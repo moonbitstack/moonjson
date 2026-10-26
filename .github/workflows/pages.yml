@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - "site/**"
+      - "docs/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -29,13 +29,13 @@ jobs:
         with:
           persist-credentials: false
 
-      # The site is hand-written HTML with no build step: what is in `site/` is
+      # The site is hand-written HTML with no build step: what is in `docs/` is
       # what gets served, so there is nothing here that can drift from it.
       - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: site
+          path: docs
 
       - id: deploy
         uses: actions/deploy-pages@v5

@@ -10,6 +10,6 @@ license = "Apache-2.0"
 
 keywords = [ "json", "cbor", "moonbit" ]
 
-description = "The JSON family for MoonBit."
+description = "JSON, its dialects and its binary encodings for MoonBit."
 
 source = "src"

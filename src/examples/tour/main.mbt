@@ -4,7 +4,7 @@
 ///|
 /// The four dialects and the pointer, in one run.
 ///
-///     moon run examples/tour
+///     moon run src/examples/tour
 #coverage.skip
 fn main raise {
   // One document, three ways of writing it. They read to the same tree.

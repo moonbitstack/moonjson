@@ -111,7 +111,7 @@ def jcs(root):
             % (stem, moonbit_literal(source), moonbit_literal(canonical))
         )
     replace_between(
-        os.path.join(ROOT, "jcs", "jcs_test.mbt"),
+        os.path.join(ROOT, "src", "jcs", "jcs_test.mbt"),
         "let vectors : Array[(String, String)] = [",
         "\n]\n",
         "\n".join(rows),

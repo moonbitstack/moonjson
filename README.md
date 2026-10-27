@@ -14,7 +14,7 @@ let config = @json.loads("{\"host\":\"localhost\",\"port\":8080}")
 @pointer.get(config, "/host")    // "localhost"
 ```
 
-Run `moon run examples/tour` for the whole surface in one go.
+Run `moon run src/examples/tour` for the whole surface in one go.
 
 ## The surface
 

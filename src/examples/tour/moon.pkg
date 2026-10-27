@@ -1,4 +1,4 @@
-// A tour of the family: `moon run examples/tour`.
+// A tour of the family: `moon run src/examples/tour`.
 pkgtype(kind: "executable")
 
 import {

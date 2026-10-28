@@ -876,7 +876,7 @@ th code {
 
 @media (max-width: 860px) {
   .docs-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
 
@@ -1060,6 +1060,7 @@ th code {
 
 .api-members li {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 2px;
   padding-left: 12px;
   border-left: 2px solid var(--accent-soft);

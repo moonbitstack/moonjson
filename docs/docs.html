@@ -8,7 +8,7 @@
       name="description"
       content="The guide to moonjson, in the order it is learned: one document read and written, a document changed, the notations, a query, and the binary formats."
     />
-    <link rel="stylesheet" href="assets/style.css?v=3" />
+    <link rel="stylesheet" href="assets/style.css?v=4" />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' font-weight='bold' fill='white' text-anchor='middle'%3E%7B%7D%3C/text%3E%3C/svg%3E"
@@ -513,6 +513,21 @@ query.select(shelf)</pre>
               <div class="code-card">
                 <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
                 <pre>line 3, column 8</pre>
+              </div>
+              <p>
+                A caller that only wants to show the failure to a person does not
+                have to walk the variants: <code>message()</code> writes the
+                sentence, in the same place, with the character that was found.
+              </p>
+              <div class="code-card">
+                <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+                <pre data-lang="moonbit">try @json.loads(text) catch {
+  e => println(e.message())
+}</pre>
+              </div>
+              <div class="code-card">
+                <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+                <pre>line 3, column 8: unexpected '?'</pre>
               </div>
               <p>
                 The variants carry the scanner's refusals, the pointer's

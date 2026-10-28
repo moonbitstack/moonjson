@@ -32,6 +32,9 @@
   --syn-punct: #8a919e;
   --syn-attr: #0e7490;
 
+  --danger: #b42318;
+  --danger-soft: #fdf2f1;
+
   --radius: 14px;
   --max: 1060px;
 
@@ -54,6 +57,9 @@
   --code-border: #232935;
   --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 30%);
   --shadow-lg: 0 2px 4px rgb(0 0 0 / 40%), 0 16px 48px rgb(0 0 0 / 45%);
+
+  --danger: #f2a396;
+  --danger-soft: #2a1b1a;
 
   --syn-comment: #6f7887;
   --syn-string: #6ee7b7;
@@ -1358,4 +1364,38 @@ select {
 
 .dropdown[data-open="true"] .dropdown-trigger {
   border-color: var(--accent);
+}
+
+/* ---------- the document's reader ---------- */
+
+.doc-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: -10px 0 26px;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.reader-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* ---------- a refused document ---------- */
+
+/* The sentence comes from Refused::message: it already names the line and the
+   column, so the box only has to colour it. */
+pre.is-refused {
+  color: var(--danger);
+}
+
+.code-card.is-refused {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--code-border));
+  background: var(--danger-soft);
+}
+
+.code-card.is-refused .bar {
+  color: var(--danger);
 }

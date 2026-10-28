@@ -8,7 +8,7 @@
       name="description"
       content="One tree, every notation: this library compiled to JavaScript writes the same document as JSON, CBOR, CBD, UBJSON, Smile, SQLite jsonb and PostgreSQL jsonb, and lays it out live."
     />
-    <link rel="stylesheet" href="assets/style.css?v=3" />
+    <link rel="stylesheet" href="assets/style.css?v=4" />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' font-weight='bold' fill='white' text-anchor='middle'%3E%7B%7D%3C/text%3E%3C/svg%3E"
@@ -68,13 +68,38 @@
         <h2>One tree, every notation</h2>
         <p>
           Everything below is this library compiled to JavaScript — the same code
-          the tests run, in the browser. Edit the document; the notation and the
-          layout follow. A value written one way reads back the same written
-          another.
+          the tests run, in the browser. The document is read as the dialect you
+          pick, so a trailing comma and a <code>//</code> comment are refused by
+          JSON with the line and the column, and accepted by JSON5 — and the
+          sentence you see is <code>Refused::message</code>, printed by the
+          library, not written by this page.
         </p>
       </div>
 
       <textarea id="doc" class="doc-input" spellcheck="false" aria-label="The document">{"name":"John","age":30,"tags":["a","b"],"note":"café"}</textarea>
+
+      <div class="doc-tools">
+        <span class="field-label" id="reader-label">read as</span>
+        <div class="dropdown" id="reader-dropdown" data-open="false">
+          <button
+            class="dropdown-trigger"
+            type="button"
+            id="reader-trigger"
+            role="combobox"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-controls="reader-menu"
+            aria-labelledby="reader-label reader-value"
+          >
+            <span class="dropdown-value" id="reader-value">JSON</span>
+            <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+          <ul class="dropdown-menu" id="reader-menu" role="listbox" aria-labelledby="reader-label" hidden></ul>
+        </div>
+        <span class="reader-hint" id="reader-hint">strict RFC 8259: no comments, no trailing comma</span>
+      </div>
 
       <div class="section-head" style="margin-top: 8px">
         <div class="kicker">notations</div>
@@ -94,8 +119,9 @@
         <button type="button" data-note="smile" role="tab">Smile</button>
         <button type="button" data-note="sqlite" role="tab">SQLite jsonb</button>
         <button type="button" data-note="pg" role="tab">PostgreSQL jsonb</button>
+        <button type="button" data-note="ndjson" role="tab">NDJSON</button>
       </div>
-      <div class="code-card">
+      <div class="code-card" id="note-card">
         <div class="bar"><span class="lang" id="notation-lang">JSON</span><span class="spacer"></span><button class="copy" type="button" id="copy-note">copy</button></div>
         <pre id="notation-out"></pre>
       </div>
@@ -123,7 +149,7 @@
               aria-controls="indent-menu"
               aria-labelledby="indent-label indent-value"
             >
-              <span id="indent-value">2</span>
+              <span class="dropdown-value" id="indent-value">2</span>
               <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M6 9l6 6 6-6" />
               </svg>
@@ -139,8 +165,8 @@
         <label><input type="checkbox" id="fmt-sort" /> sort names</label>
         <label><input type="checkbox" id="fmt-ascii" /> ASCII only</label>
       </div>
-      <div class="code-card">
-        <div class="bar"><span class="lang">output</span><span class="spacer"></span><button class="copy" type="button" id="copy-fmt">copy</button></div>
+      <div class="code-card" id="fmt-card">
+        <div class="bar"><span class="lang" id="fmt-lang">output</span><span class="spacer"></span><button class="copy" type="button" id="copy-fmt">copy</button></div>
         <pre id="fmt-out"></pre>
       </div>
     </main>
@@ -159,25 +185,29 @@
     </footer>
 
     <script src="assets/app.js?v=3"></script>
-    <script src="assets/moonjson.js?v=3"></script>
+    <script src="assets/moonjson.js?v=4"></script>
     <script>
+      // Everything here goes through globalThis.moonjson — this library compiled
+      // with the JavaScript backend. The page owns no reader, no writer and no
+      // message: it moves strings, and prints what comes back.
       (function () {
         var api = globalThis.moonjson;
         var doc = document.getElementById("doc");
         var out = document.getElementById("notation-out");
         var lang = document.getElementById("notation-lang");
+        var noteCard = document.getElementById("note-card");
         var fmtOut = document.getElementById("fmt-out");
-        var indentDrop = document.getElementById("indent-dropdown");
-        var indentTrigger = document.getElementById("indent-trigger");
-        var indentMenu = document.getElementById("indent-menu");
-        var indentValue = document.getElementById("indent-value");
-        var indentOptions = indentMenu.querySelectorAll("[role='option']");
-        var indent = 2;
-        var tabs = document.getElementById("fmt-tabs");
-        var sort = document.getElementById("fmt-sort");
-        var ascii = document.getElementById("fmt-ascii");
+        var fmtCard = document.getElementById("fmt-card");
+        var fmtLang = document.getElementById("fmt-lang");
+        var tabsBox = document.getElementById("fmt-tabs");
+        var sortBox = document.getElementById("fmt-sort");
+        var asciiBox = document.getElementById("fmt-ascii");
+        var readerHint = document.getElementById("reader-hint");
+        var readerMenu = document.getElementById("reader-menu");
+        var indentField = document.getElementById("indent-field");
         var buttons = document.querySelectorAll("[data-note]");
-        var current = "json";
+        var MISSING = "// this library did not load";
+
         var LABEL = {
           json: "JSON",
           pretty: "JSON, indented",
@@ -186,25 +216,71 @@
           ubjson: "UBJSON",
           smile: "Smile",
           sqlite: "SQLite jsonb",
-          pg: "PostgreSQL jsonb"
+          pg: "PostgreSQL jsonb",
+          ndjson: "NDJSON"
         };
-        var MISSING = "// this library did not load";
+        var READER = {
+          json: "JSON",
+          jsonc: "JSONC",
+          json5: "JSON5",
+          hjson: "Hjson",
+          cson: "CSON"
+        };
+        var READER_HINT = {
+          json: "strict RFC 8259: no comments, no trailing comma",
+          jsonc: "JSON with // and /* */ comments, and a comma before the closing bracket",
+          json5: "comments, unquoted keys, single quotes, hex and Infinity",
+          hjson: "optional braces and commas, quoteless strings, ''' blocks",
+          cson: "indentation instead of brackets; a document that opens with { is read as JSON"
+        };
 
+        var current = "json";
+        var indent = 2;
+        var dialect = "json";
+
+        // The library answers every call with {"ok": …, "text": …}. A refusal
+        // carries Refused::message, which already names the line and column.
+        function answer(envelope) {
+          try {
+            return JSON.parse(envelope);
+          } catch (error) {
+            return { ok: false, text: MISSING };
+          }
+        }
+        function show(node, card, labelNode, label, reply) {
+          node.textContent = reply.text;
+          var refused = !reply.ok;
+          node.classList.toggle("is-refused", refused);
+          card.classList.toggle("is-refused", refused);
+          labelNode.textContent = refused ? label + " — refused" : label;
+        }
         function renderNotation() {
-          out.textContent = api ? api.notation(doc.value, current) : MISSING;
-          lang.textContent = LABEL[current] || current;
+          if (!api) {
+            show(out, noteCard, lang, LABEL[current], { ok: false, text: MISSING });
+            return;
+          }
+          show(out, noteCard, lang, LABEL[current], answer(api.notation(doc.value, current, dialect)));
         }
         function renderFormat() {
           if (!api) {
-            fmtOut.textContent = MISSING;
+            show(fmtOut, fmtCard, fmtLang, "output", { ok: false, text: MISSING });
             return;
           }
-          fmtOut.textContent = api.format(
-            doc.value,
-            indent,
-            tabs.checked,
-            sort.checked,
-            ascii.checked
+          show(
+            fmtOut,
+            fmtCard,
+            fmtLang,
+            "output",
+            answer(
+              api.format(
+                doc.value,
+                indent,
+                tabsBox.checked,
+                sortBox.checked,
+                asciiBox.checked,
+                dialect
+              )
+            )
           );
         }
         function renderAll() {
@@ -212,128 +288,201 @@
           renderFormat();
         }
 
+        // --- a dropdown ------------------------------------------------------
+
+        var TICK =
+          '<svg class="tick" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>';
+
+        function bindDropdown(root, onPick) {
+          var trigger = root.querySelector(".dropdown-trigger");
+          var menu = root.querySelector(".dropdown-menu");
+          var valueNode = root.querySelector(".dropdown-value");
+          var options = menu.querySelectorAll("[role='option']");
+          var value = "";
+
+          function mark() {
+            for (var i = 0; i < options.length; i++) {
+              options[i].setAttribute(
+                "aria-selected",
+                String(options[i].dataset.value === value)
+              );
+            }
+          }
+          function open(state) {
+            root.setAttribute("data-open", String(state));
+            trigger.setAttribute("aria-expanded", String(state));
+            menu.hidden = !state;
+            for (var i = 0; i < options.length; i++) {
+              options[i].classList.remove("is-active");
+            }
+            if (state) {
+              var active = null;
+              for (var j = 0; j < options.length; j++) {
+                if (options[j].dataset.value === value) {
+                  active = options[j];
+                }
+              }
+              active = active || options[0];
+              if (active) {
+                active.classList.add("is-active");
+                trigger.setAttribute("aria-activedescendant", active.id || "");
+              }
+            } else {
+              trigger.removeAttribute("aria-activedescendant");
+            }
+          }
+          function move(step) {
+            var list = Array.prototype.slice.call(options);
+            var active = menu.querySelector("li.is-active");
+            var at = list.indexOf(active);
+            var next = Math.min(list.length - 1, Math.max(0, at + step));
+            for (var i = 0; i < list.length; i++) {
+              list[i].classList.toggle("is-active", i === next);
+            }
+            if (list[next].id) {
+              trigger.setAttribute("aria-activedescendant", list[next].id);
+            }
+          }
+          function choose(option) {
+            value = option.dataset.value;
+            valueNode.textContent = option.textContent.trim();
+            mark();
+            open(false);
+            if (onPick) {
+              onPick(value);
+            }
+          }
+
+          trigger.addEventListener("click", function () {
+            open(menu.hidden);
+          });
+          trigger.addEventListener("keydown", function (event) {
+            var isOpen = !menu.hidden;
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+              event.preventDefault();
+              if (!isOpen) {
+                open(true);
+              } else {
+                move(event.key === "ArrowDown" ? 1 : -1);
+              }
+            } else if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              var active = menu.querySelector("li.is-active");
+              if (!isOpen) {
+                open(true);
+              } else if (active) {
+                choose(active);
+              }
+            } else if (event.key === "Escape" && isOpen) {
+              event.preventDefault();
+              open(false);
+            }
+          });
+          for (var k = 0; k < options.length; k++) {
+            (function (option) {
+              option.addEventListener("mouseenter", function () {
+                for (var i = 0; i < options.length; i++) {
+                  options[i].classList.remove("is-active");
+                }
+                option.classList.add("is-active");
+              });
+              option.addEventListener("click", function () {
+                choose(option);
+                trigger.focus();
+              });
+            })(options[k]);
+          }
+          document.addEventListener("click", function (event) {
+            if (!menu.hidden && !root.contains(event.target)) {
+              open(false);
+            }
+          });
+
+          return {
+            set: function (next, quiet) {
+              value = String(next);
+              var chosen = null;
+              for (var i = 0; i < options.length; i++) {
+                if (options[i].dataset.value === value) {
+                  chosen = options[i];
+                }
+              }
+              valueNode.textContent = chosen ? chosen.textContent.trim() : value;
+              mark();
+              if (!quiet && onPick) {
+                onPick(value);
+              }
+            }
+          };
+        }
+
+        // --- the two controls -------------------------------------------------
+
+        var indentDrop = bindDropdown(
+          document.getElementById("indent-dropdown"),
+          function (value) {
+            indent = Number(value);
+            renderFormat();
+          }
+        );
+        indentDrop.set(2, true);
+
+        // The list of readers comes from the library, so the page cannot offer
+        // a dialect the library does not read.
+        (function buildReaders() {
+          if (!api) {
+            return;
+          }
+          var names = answer(api.dialects()).text || "json";
+          names.split(",").forEach(function (name) {
+            var option = document.createElement("li");
+            option.setAttribute("role", "option");
+            option.dataset.value = name;
+            option.setAttribute("aria-selected", "false");
+            option.textContent = READER[name] || name;
+            option.insertAdjacentHTML("beforeend", TICK);
+            readerMenu.appendChild(option);
+          });
+        })();
+
+        var readerDrop = bindDropdown(
+          document.getElementById("reader-dropdown"),
+          function (value) {
+            dialect = value;
+            readerHint.textContent = READER_HINT[value] || "";
+            renderAll();
+          }
+        );
+        readerDrop.set("json", true);
+
+        // --- the tabs, the boxes, the switches --------------------------------
+
         for (var i = 0; i < buttons.length; i++) {
-          (function (b) {
-            b.addEventListener("click", function () {
-              current = b.dataset.note;
+          (function (button) {
+            button.addEventListener("click", function () {
+              current = button.dataset.note;
               for (var j = 0; j < buttons.length; j++) {
-                buttons[j].setAttribute("aria-selected", String(buttons[j].dataset.note === current));
+                buttons[j].setAttribute(
+                  "aria-selected",
+                  String(buttons[j].dataset.note === current)
+                );
               }
               renderNotation();
             });
           })(buttons[i]);
         }
         doc.addEventListener("input", renderAll);
-        [tabs, sort, ascii].forEach(function (box) {
+        [tabsBox, sortBox, asciiBox].forEach(function (box) {
           box.addEventListener("input", renderFormat);
           box.addEventListener("change", renderFormat);
         });
-        var indentField = document.getElementById("indent-field");
         function reflectTabs() {
-          indentField.setAttribute("data-muted", String(tabs.checked));
-          indentField.title = tabs.checked
+          indentField.setAttribute("data-muted", String(tabsBox.checked));
+          indentField.title = tabsBox.checked
             ? "One tab a level replaces the space count"
             : "";
         }
-        tabs.addEventListener("change", reflectTabs);
-
-        // --- the indent dropdown ---------------------------------------------
-
-        function markOptions() {
-          for (var i = 0; i < indentOptions.length; i++) {
-            indentOptions[i].setAttribute(
-              "aria-selected",
-              String(Number(indentOptions[i].dataset.value) === indent)
-            );
-          }
-        }
-        function chooseIndent(value) {
-          indent = value;
-          indentValue.textContent = String(value);
-          markOptions();
-          renderFormat();
-        }
-        function openMenu(open) {
-          indentDrop.setAttribute("data-open", String(open));
-          indentTrigger.setAttribute("aria-expanded", String(open));
-          indentMenu.hidden = !open;
-          if (!open) {
-            indentTrigger.removeAttribute("aria-activedescendant");
-          }
-          for (var i = 0; i < indentOptions.length; i++) {
-            indentOptions[i].classList.remove("is-active");
-          }
-          if (open) {
-            var current = null;
-            for (var j = 0; j < indentOptions.length; j++) {
-              if (Number(indentOptions[j].dataset.value) === indent) {
-                current = indentOptions[j];
-              }
-            }
-            var first = current || indentOptions[0];
-            first.classList.add("is-active");
-            indentTrigger.setAttribute("aria-activedescendant", first.id);
-          }
-        }
-        function moveActive(step) {
-          var list = Array.prototype.slice.call(indentOptions);
-          var active = indentMenu.querySelector("li.is-active");
-          var at = list.indexOf(active);
-          var next = Math.min(list.length - 1, Math.max(0, at + step));
-          for (var i = 0; i < list.length; i++) {
-            list[i].classList.toggle("is-active", i === next);
-          }
-          indentTrigger.setAttribute("aria-activedescendant", list[next].id);
-        }
-        indentTrigger.addEventListener("click", function () {
-          openMenu(indentMenu.hidden);
-        });
-        indentTrigger.addEventListener("keydown", function (event) {
-          var open = !indentMenu.hidden;
-          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-            event.preventDefault();
-            if (!open) {
-              openMenu(true);
-            } else {
-              moveActive(event.key === "ArrowDown" ? 1 : -1);
-            }
-          } else if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            var active = indentMenu.querySelector("li.is-active");
-            if (!open) {
-              openMenu(true);
-            } else if (active) {
-              chooseIndent(Number(active.dataset.value));
-              openMenu(false);
-            }
-          } else if (event.key === "Escape" && open) {
-            event.preventDefault();
-            openMenu(false);
-          }
-        });
-        for (var n = 0; n < indentOptions.length; n++) {
-          (function (option) {
-            option.addEventListener("mouseenter", function () {
-              for (var i = 0; i < indentOptions.length; i++) {
-                indentOptions[i].classList.remove("is-active");
-              }
-              option.classList.add("is-active");
-            });
-            option.addEventListener("click", function () {
-              chooseIndent(Number(option.dataset.value));
-              openMenu(false);
-              indentTrigger.focus();
-            });
-          })(indentOptions[n]);
-        }
-        document.addEventListener("click", function (event) {
-          if (!indentMenu.hidden && !indentDrop.contains(event.target)) {
-            openMenu(false);
-          }
-        });
-        for (var m = 0; m < buttons.length; m++) {
-          buttons[m].setAttribute("aria-selected", String(buttons[m].dataset.note === current));
-        }
+        tabsBox.addEventListener("change", reflectTabs);
 
         function copy(button, node) {
           if (!button || !node) {
@@ -353,6 +502,12 @@
         copy(document.getElementById("copy-note"), out);
         copy(document.getElementById("copy-fmt"), fmtOut);
 
+        for (var m = 0; m < buttons.length; m++) {
+          buttons[m].setAttribute(
+            "aria-selected",
+            String(buttons[m].dataset.note === current)
+          );
+        }
         reflectTabs();
         renderAll();
       })();

@@ -2,16 +2,22 @@
 // so the page runs this library compiled with the JavaScript backend rather
 // than a reimplementation. Build it with
 //
-//     moon build --target js src/examples/web
+//     moon build --target js --release src/examples/web
 //
-// and the page calls `globalThis.moonjson.format(...)` and
-// `globalThis.moonjson.notation(...)`.
+// and the page calls `globalThis.moonjson.format(...)`,
+// `globalThis.moonjson.notation(...)` and `globalThis.moonjson.dialects()`.
 pkgtype(kind: "executable")
 
 supported_targets = "js"
 
 import {
+  "moonbitstack/moonjson",
   "moonbitstack/moonjson/json",
+  "moonbitstack/moonjson/jsonc",
+  "moonbitstack/moonjson/json5",
+  "moonbitstack/moonjson/hjson",
+  "moonbitstack/moonjson/cson",
+  "moonbitstack/moonjson/lines",
   "moonbitstack/moonjson/pretty",
   "moonbitstack/moonjson/cbor",
   "moonbitstack/moonjson/cbd",

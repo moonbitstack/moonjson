@@ -991,10 +991,12 @@ th code {
    because a field is read after the type it belongs to. */
 .api-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
 
 .api-item {
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -1012,6 +1014,7 @@ th code {
 
 .api-signature {
   display: block;
+  max-width: 100%;
   margin: 0;
   padding: 8px 10px;
   background: var(--code-bg);

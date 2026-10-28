@@ -66,7 +66,7 @@ let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
 | `smile` | Smile, Jackson's binary JSON | github.com/FasterXML/smile-format-specification |
 | `bjson` | Binary JSON, the bjson.org draft | bjson.org |
 | `krson` | KRSON, a schemaless binary JSON | crates.io/crates/krson-core |
-| `cbd` | CompactBinaryData: a 5-byte header, 3-bit type descriptors | github.com/makalin/CBD |
+| `cbd` | CompactBinaryData: a 5-byte header, a key dictionary, 3-bit type descriptors | github.com/makalin/CBD |
 | `jsonb/sqlite` | SQLite's `jsonb` | sqlite.org/jsonb.html |
 | `jsonb/pg` | PostgreSQL's on-disk `jsonb` | postgresql.org/docs/current/datatype-json |
 | `hjson` | Hjson: comments, quoteless keys, commas optional | hjson.github.io |

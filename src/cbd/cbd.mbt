@@ -2,19 +2,23 @@
 // https://github.com/makalin/CBD
 // Format spec: https://raw.githubusercontent.com/makalin/CBD/main/docs/format_specification.md
 //
-// A compact binary encoding of the JSON data model. A stream starts with a
-// 5-byte header (magic 0xC1, version 0x01, three reserved zero bytes), then each
-// value is a one-byte descriptor: its low 3 bits name the type, its high 5 bits
-// hold a length or element count when that fits, and a 31 in those five bits is
-// the escape to an unsigned LEB128 varint. This keeps the common small value to a
-// single byte.
+// The framing follows the specification literally:
 //
-// Two choices keep the promise every package in this family makes — that a tree
-// read here is written back unchanged. Numbers are stored as their IEEE-754 bits,
-// so a value round-trips exactly; a byte string arrives as the reserved
-// `{"$bytes": "…"}` member, so the byte strings of CBOR, MessagePack and BSON are
-// one `$bytes` in the tree whatever format carried them. Both are noted on
-// `load`/`dump`.
+//   Header (5 bytes): magic 0xCB 0xD1, version 0x01, dictionary size (uint16 BE)
+//   Dictionary:       one UTF-8 key each, length as 1 byte (<128) or 2 bytes
+//                     with the high bit set, in order of first appearance;
+//                     keys get the 1-based ids 1, 2, 3 …
+//   Data:             one type byte per value. Bits 7-5 are the type code, bit 0
+//                     is the container flag, bits 4-1 are reserved. Null 0x00,
+//                     false 0x20, true 0x21, number 0x40 with a 2-bit format,
+//                     string 0x60, array 0x81, object 0xA1; counts and lengths
+//                     are unsigned LEB128 varints, big-endian for fixed words.
+//
+// Two points the draft leaves open are pinned down here and written on the
+// declarations: the number format bits live in bits 2-1 (00 integer, 11 float64),
+// and a number that is not a non-negative integral value is written as float64
+// so every JSON number round-trips exactly. The draft's own example — an object
+// with `name` and `age` — is decoded in the tests, byte for byte.
 // Copyright 2026 Leo Cheng
 // SPDX-License-Identifier: Apache-2.0
 
@@ -46,31 +50,32 @@ pub fn Policy::new(depth~ : Int32 = policy.depth) -> Policy {
 }
 
 ///|
-/// What a tree becomes when a CBD value has no JSON counterpart.
+/// Read one CBD document.
 ///
-/// | CBD | tree |
-/// |:--|:--|
-/// | `blob` | `{"$bytes": "0102"}` — lowercase hex, no separators |
-///
-/// A byte string survives a trip through this format, so the byte strings of
-/// CBOR, MessagePack and BSON are one `$bytes` in the tree whichever format
-/// carried them. A number is kept as its IEEE-754 bits, so `1` and `1.0`
-/// round-trip exactly.
+/// The header is magic `0xCB 0xD1`, version `0x01`, then the dictionary size.
+/// A byte string has no type of its own in CBD v0.1.0, so it stays an ordinary
+/// object `{"$bytes": "…"}` — the marker every package in this family shares —
+/// and a trip through CBD leaves it exactly as it was.
 pub fn load(
   input : BytesView,
   policy~ : Policy = policy,
 ) -> Json raise @moonjson.Refused {
   let r : Reader = { src: input, policy, i: 0, }
-  if r.byte() != 0xC1 {
+  if r.byte() != 0xCB {
     raise @moonjson.Bad(at=0, why="not a CBD stream (bad magic)")
   }
-  if r.byte() != 0x01 {
-    raise @moonjson.Bad(at=1, why="a CBD version this reader does not know")
+  if r.byte() != 0xD1 {
+    raise @moonjson.Bad(at=1, why="not a CBD stream (bad magic)")
   }
-  let _ = r.byte()
-  let _ = r.byte()
-  let _ = r.byte()
-  let value = r.node(0)
+  if r.byte() != 0x01 {
+    raise @moonjson.Bad(at=2, why="a CBD version this reader does not know")
+  }
+  let dict_count = (r.byte() << 8) | r.byte()
+  let dict : Array[String] = []
+  for _ in 0..<dict_count {
+    dict.push(r.dict_key())
+  }
+  let value = r.node(0, dict)
   if r.i < input.length() {
     raise @moonjson.Extra(at=r.i)
   }
@@ -79,17 +84,25 @@ pub fn load(
 
 ///|
 /// Write a tree as CBD.
+///
+/// The dictionary is built in the order keys are first met, matching the
+/// specification's "order of first appearance".
 pub fn dump(
   value : Json,
   policy~ : Policy = policy,
 ) -> Bytes raise @moonjson.Refused {
+  let dict : Array[String] = []
+  let index : Map[String, Int32] = Map([])
+  collect(value, dict, index)
   let buf = Buffer()
-  buf.write_byte(0xC1)
+  buf.write_byte(0xCB)
+  buf.write_byte(0xD1)
   buf.write_byte(0x01)
-  buf.write_byte(0x00)
-  buf.write_byte(0x00)
-  buf.write_byte(0x00)
-  write(buf, value, policy)
+  buf.write_uint16_be(dict.length().to_uint16())
+  for key in dict {
+    write_dict_key(buf, key)
+  }
+  write(buf, value, index, policy)
   buf.to_bytes()
 }
 
@@ -132,14 +145,19 @@ fn Reader::uint64(self : Reader) -> UInt64 raise @moonjson.Refused {
 }
 
 ///|
-/// An unsigned LEB128 varint.
+/// An unsigned LEB128 varint, as a count, a length or a key id.
 fn Reader::varint(self : Reader) -> Int32 raise @moonjson.Refused {
-  let mut v : Int32 = 0
+  self.varint_u64().to_int()
+}
+
+///|
+fn Reader::varint_u64(self : Reader) -> UInt64 raise @moonjson.Refused {
+  let mut v : UInt64 = 0
   let mut shift = 0
   let mut going = true
   while going {
     let b = self.byte()
-    v = v | ((b & 0x7F) << shift)
+    v = v | ((b.to_uint64() & 0x7FUL) << shift)
     if (b & 0x80) == 0 {
       going = false
     } else {
@@ -150,19 +168,28 @@ fn Reader::varint(self : Reader) -> Int32 raise @moonjson.Refused {
 }
 
 ///|
-/// The length or count a descriptor carries: its high five bits, or a varint when
-/// those five bits are the 31 escape.
-fn Reader::count_of(self : Reader, d : Int32) -> Int32 raise @moonjson.Refused {
-  let field = (d >> 3) & 0x1F
-  if field < 31 {
-    field
+/// A dictionary key: a length (one byte, or two with the high bit set) then the
+/// UTF-8 bytes.
+fn Reader::dict_key(self : Reader) -> String raise @moonjson.Refused {
+  let first = self.byte()
+  let n = if (first & 0x80) == 0 {
+    first
   } else {
-    self.varint()
+    ((first & 0x7F) << 8) | self.byte()
+  }
+  let bytes = self.take(n)
+  @utf8.decode(bytes) catch {
+    _ =>
+      raise @moonjson.Bad(at=self.i, why="a dictionary key that is not UTF-8")
   }
 }
 
 ///|
-fn Reader::node(self : Reader, depth : Int32) -> Json raise @moonjson.Refused {
+fn Reader::node(
+  self : Reader,
+  depth : Int32,
+  dict : Array[String],
+) -> Json raise @moonjson.Refused {
   if depth > self.policy.depth {
     raise @moonjson.Bad(
       at=self.i,
@@ -170,14 +197,14 @@ fn Reader::node(self : Reader, depth : Int32) -> Json raise @moonjson.Refused {
     )
   }
   let d = self.byte()
-  let type_ = d & 7
+  let type_ = (d >> 5) & 7
+  let is_container = (d & 1) == 1
   match type_ {
     0 => Json::null()
-    1 => Json::boolean(false)
-    2 => Json::boolean(true)
-    3 => Json::number(self.uint64().reinterpret_as_double())
-    4 => {
-      let n = self.count_of(d)
+    1 => Json::boolean(is_container)
+    2 => self.number_node(d)
+    3 => {
+      let n = self.varint()
       let bytes = self.take(n)
       let decoded = @utf8.decode(bytes) catch {
         _ =>
@@ -185,30 +212,24 @@ fn Reader::node(self : Reader, depth : Int32) -> Json raise @moonjson.Refused {
       }
       Json::string(decoded)
     }
-    5 => {
-      let n = self.count_of(d)
-      let bytes = self.take(n)
-      Json::object({ "$bytes": @hex.encode(bytes[:]) })
-    }
-    6 => {
-      let count = self.count_of(d)
+    4 => {
+      let count = self.varint()
       let items : Array[Json] = []
       for _ in 0..<count {
-        items.push(self.node(depth + 1))
+        items.push(self.node(depth + 1, dict))
       }
       Json::array(items)
     }
-    7 => {
-      let count = self.count_of(d)
+    5 => {
+      let count = self.varint()
       let out : Map[String, Json] = Map([])
       for _ in 0..<count {
-        let key = self.node(depth + 1)
-        let name = match key {
-          String(s) => s
-          _ =>
-            raise @moonjson.Bad(at=self.i, why="a member name that is not text")
+        let id = self.varint()
+        if id < 1 || id > dict.length() {
+          raise @moonjson.Bad(at=self.i, why="a key id outside the dictionary")
         }
-        out[name] = self.node(depth + 1)
+        let name = dict[id - 1]
+        out[name] = self.node(depth + 1, dict)
       }
       Json::object(out)
     }
@@ -220,52 +241,123 @@ fn Reader::node(self : Reader, depth : Int32) -> Json raise @moonjson.Refused {
   }
 }
 
+///|
+/// A number: the two format bits live in bits 2-1. `00`/`01` are a non-negative
+/// integer as a varint, `11` is a 64-bit float, `10` a 32-bit float.
+fn Reader::number_node(
+  self : Reader,
+  d : Int32,
+) -> Json raise @moonjson.Refused {
+  let format = (d >> 1) & 3
+  if format == 0 || format == 1 {
+    Json::number(self.varint_u64().to_double())
+  } else if format == 3 {
+    Json::number(self.uint64().reinterpret_as_double())
+  } else {
+    let _ = self.byte()
+    let _ = self.byte()
+    let _ = self.byte()
+    let _ = self.byte()
+    raise @moonjson.Bad(
+      at=self.i - 4,
+      why="a 32-bit float, which this encoder never writes",
+    )
+  }
+}
+
 // ───────────────────────────── writing ─────────────────────────────
+
+///|
+/// Collect every object key once, in the order it is first met, and give it its
+/// 1-based id. A key that repeats keeps its first id.
+fn collect(
+  value : Json,
+  dict : Array[String],
+  index : Map[String, Int32],
+) -> Unit {
+  match value {
+    Object(members) =>
+      for name, child in members {
+        if index.get(name) == None {
+          dict.push(name)
+          index[name] = dict.length()
+        }
+        collect(child, dict, index)
+      }
+    Array(items) =>
+      for item in items {
+        collect(item, dict, index)
+      }
+    _ => ()
+  }
+}
+
+///|
+fn write_dict_key(buf : Buffer, key : String) -> Unit {
+  let bytes = @utf8.encode(key[:])
+  let n = bytes.length()
+  if n < 128 {
+    buf.write_byte(n.to_byte())
+  } else {
+    buf.write_byte((0x80 | (n >> 8)).to_byte())
+    buf.write_byte((n & 0xFF).to_byte())
+  }
+  buf.write_bytes(bytes[:])
+}
 
 ///|
 fn write(
   buf : Buffer,
   value : Json,
+  index : Map[String, Int32],
   policy : Policy,
 ) -> Unit raise @moonjson.Refused {
   match value {
     Null => buf.write_byte(0x00)
-    False => buf.write_byte(0x01)
-    True => buf.write_byte(0x02)
-    Number(n, ..) => {
-      buf.write_byte(0x03)
-      buf.write_uint64_be(n.reinterpret_as_uint64())
-    }
+    False => buf.write_byte(0x20)
+    True => buf.write_byte(0x21)
+    Number(n, ..) => write_number(buf, n)
     String(s) => {
       let bytes = @utf8.encode(s[:])
-      head(buf, 4, bytes.length())
+      buf.write_byte(0x60)
+      write_varint(buf, bytes.length())
       buf.write_bytes(bytes[:])
     }
     Array(items) => {
-      let count : Int32 = items.length()
-      head(buf, 6, count)
+      buf.write_byte(0x81)
+      write_varint(buf, items.length())
       for item in items {
-        write(buf, item, policy)
+        write(buf, item, index, policy)
       }
     }
-    Object(members) => object(buf, members, policy)
+    Object(members) => {
+      buf.write_byte(0xA1)
+      write_varint(buf, members.length())
+      for name, child in members {
+        write_varint(buf, index.get(name).unwrap())
+        write(buf, child, index, policy)
+      }
+    }
   }
 }
 
 ///|
-/// The descriptor byte: a short length in the high five bits, or the 31 escape
-/// followed by a varint.
-fn head(buf : Buffer, type_ : Int32, len : Int32) -> Unit {
-  if len < 31 {
-    buf.write_byte(((len << 3) | type_).to_byte())
+/// A number: a non-negative integral value that fits in an unsigned 64-bit word
+/// goes as format `00` and a varint, matching the specification's example; a
+/// value that is not one goes as format `11` and its IEEE-754 bits, so every
+/// JSON number — negative, fractional, huge — round-trips exactly.
+fn write_number(buf : Buffer, n : Double) -> Unit {
+  if n >= 0.0 && n == @double.trunc(n) && n < 1.8e19 {
+    buf.write_byte(0x40)
+    write_varint_u64(buf, n.to_int64().reinterpret_as_uint64())
   } else {
-    buf.write_byte(((31 << 3) | type_).to_byte())
-    varint(buf, len)
+    buf.write_byte(0x46)
+    buf.write_uint64_be(n.reinterpret_as_uint64())
   }
 }
 
 ///|
-fn varint(buf : Buffer, n : Int32) -> Unit {
+fn write_varint(buf : Buffer, n : Int32) -> Unit {
   let mut v = n
   let mut going = true
   while going {
@@ -280,54 +372,16 @@ fn varint(buf : Buffer, n : Int32) -> Unit {
 }
 
 ///|
-/// An object is either the `$bytes` marker `load` documents, or a map whose keys
-/// are strings — written in code-point order, because that is the order the tree
-/// remembers them in and the order the reader sees them again.
-fn object(
-  buf : Buffer,
-  members : Map[String, Json],
-  policy : Policy,
-) -> Unit raise @moonjson.Refused {
-  if members.length() == 1 {
-    match members.get("$bytes") {
-      Some(String(hex)) => {
-        let bytes = @hex.decode(hex[:]) catch {
-          _ => raise @moonjson.Unwritable(why="\"$bytes\" wants lowercase hex")
-        }
-        let count : Int32 = bytes.length()
-        head(buf, 5, count)
-        buf.write_bytes(bytes[:])
-        return
-      }
-      _ => ()
+fn write_varint_u64(buf : Buffer, n : UInt64) -> Unit {
+  let mut v = n
+  let mut going = true
+  while going {
+    if v >= 0x80UL {
+      buf.write_byte(((v & 0x7FUL) | 0x80UL).to_byte())
+      v = v >> 7
+    } else {
+      buf.write_byte(v.to_byte())
+      going = false
     }
   }
-  let names : Array[String] = []
-  for name, _ in members {
-    names.push(name)
-  }
-  names.sort_by(compare_keys)
-  let count : Int32 = names.length()
-  head(buf, 7, count)
-  for name in names {
-    write(buf, Json::string(name), policy)
-    write(buf, members.get(name).unwrap(), policy)
-  }
-}
-
-///|
-/// Bytewise lexicographic order of names, the order the reader meets them in.
-fn compare_keys(a : String, b : String) -> Int32 {
-  let ba = @utf8.encode(a[:])
-  let bb = @utf8.encode(b[:])
-  let mut i = 0
-  while i < ba.length() && i < bb.length() {
-    let x = ba.at(i).to_int()
-    let y = bb.at(i).to_int()
-    if x != y {
-      return x - y
-    }
-    i += 1
-  }
-  ba.length() - bb.length()
 }

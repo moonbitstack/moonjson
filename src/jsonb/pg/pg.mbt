@@ -8,11 +8,11 @@
 // describe. A scalar node is a tag byte and its payload.
 //
 // Two choices keep the promise every package in this family makes — that a tree
-// read here is written back unchanged. Numbers are stored as their IEEE-754 bits,
-// so a value round-trips exactly rather than through a decimal string; a byte
-// string arrives as the reserved `{"$bytes": "…"}` member, so a CBOR, MessagePack
-// or BSON byte string survives a trip through this format too. Both are noted on
-// `load`/`dump`.
+// read here is written back unchanged. A number is kept as PostgreSQL's
+// `NumericVar` (an exact base-10000 decimal), so a value round-trips digit for
+// digit; a byte string arrives as the reserved `{"$bytes": "…"}` member, so a
+// CBOR, MessagePack or BSON byte string survives a trip through this format too.
+// Both are noted on `load`/`dump`.
 // Copyright 2026 Leo Cheng
 // SPDX-License-Identifier: Apache-2.0
 
@@ -52,8 +52,9 @@ pub fn Policy::new(depth~ : Int32 = policy.depth) -> Policy {
 ///
 /// A byte string survives a trip through this format the same way it does
 /// through SQLite jsonb, so the byte strings of CBOR, MessagePack and BSON are
-/// one `$bytes` in the tree whatever format carried them. A number is kept as its
-/// IEEE-754 bits, so `1` and `1.0` round-trip exactly.
+/// one `$bytes` in the tree whatever format carried them. A number is kept as
+/// PostgreSQL's `NumericVar`, an exact base-10000 decimal, so it round-trips
+/// digit for digit.
 pub fn load(
   input : BytesView,
   policy~ : Policy = policy,
@@ -118,15 +119,6 @@ fn Reader::uint32(self : Reader) -> Int32 raise @moonjson.Refused {
 }
 
 ///|
-fn Reader::uint64(self : Reader) -> UInt64 raise @moonjson.Refused {
-  let mut v : UInt64 = 0
-  for _ in 0..<8 {
-    v = (v << 8) | self.byte().to_uint64()
-  }
-  v
-}
-
-///|
 /// One node: a header word, then a body whose length the header gives.
 fn Reader::node(self : Reader, depth : Int32) -> Json raise @moonjson.Refused {
   if depth > self.policy.depth {
@@ -161,7 +153,7 @@ fn Reader::scalar_node(
     0x06 => Json::null()
     0x01 => Json::boolean(true)
     0x02 => Json::boolean(false)
-    0x04 => Json::number(self.uint64().reinterpret_as_double())
+    0x04 => Json::number(decode_numeric(self))
     0x05 => {
       let n = self.uint32()
       let bytes = self.take(n)
@@ -283,10 +275,10 @@ fn write(
     Null => scalar(buf, single(0x06))
     True => scalar(buf, single(0x01))
     False => scalar(buf, single(0x02))
-    Number(n, ..) => {
+    Number(n, repr~) => {
       let body = Buffer()
       body.write_byte(0x04)
-      body.write_uint64_be(n.reinterpret_as_uint64())
+      encode_numeric(body, n, repr)
       scalar(buf, body)
     }
     String(s) => {

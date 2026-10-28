@@ -5,6 +5,8 @@
 // data region. Numbers are kept as IEEE-754 bits so a tree round-trips exactly.
 import {
   "moonbitstack/moonjson",
+  "moonbitlang/core/double",
+  "moonbitlang/core/string",
   "moonbitlang/core/encoding/hex",
   "moonbitlang/core/encoding/utf8",
 }

@@ -6,6 +6,10 @@
 // kept as IEEE-754 bits and a byte string as the reserved `{"$bytes": "…"}`.
 import {
   "moonbitstack/moonjson",
-  "moonbitlang/core/encoding/hex",
+  "moonbitlang/core/double",
   "moonbitlang/core/encoding/utf8",
 }
+
+import {
+  "moonbitlang/core/encoding/hex",
+} for "test"

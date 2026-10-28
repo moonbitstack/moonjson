@@ -9,8 +9,12 @@
 /// how every editor counts and an error a person cannot find in their file is
 /// half an error.
 pub(all) struct At {
+  /// The offset in UTF-16 code units from the start of the document, which is
+  /// what a [`StringView`] indexes by.
   at : Int32
+  /// The line the offset is on, counting from one.
   line : Int32
+  /// The column the offset is at, counting from one.
   column : Int32
 } derive(Eq, Debug)
 

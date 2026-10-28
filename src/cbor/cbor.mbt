@@ -35,6 +35,7 @@ pub extend Policy with Debug::{to_repr}
 pub let policy : Policy = { deterministic: true, depth: 500, }
 
 ///|
+/// Build a policy by naming the parts that differ from the defaults.
 pub fn Policy::new(
   deterministic~ : Bool = policy.deterministic,
   depth~ : Int32 = policy.depth,

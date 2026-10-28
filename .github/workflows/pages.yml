@@ -6,6 +6,8 @@ on:
       - master
     paths:
       - "docs/**"
+      - "src/**"
+      - "scripts/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -29,11 +31,19 @@ jobs:
         with:
           persist-credentials: false
 
-      # The site is hand-written HTML with no build step: what is in `docs/` is
-      # what gets served, so there is nothing here that can drift from it.
-      - uses: actions/configure-pages@v6
+      # One page is generated: the API reference, from the interfaces and the
+      # doc comments. Everything else is written by hand and served as it is.
+      # A page that disagrees with the source is not deployed.
+      - name: the API reference is up to date
+        run: |
+          python3 scripts/gen_api.py
+          git diff --exit-code docs/api.html
 
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/configure-pages@v6
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: docs
 

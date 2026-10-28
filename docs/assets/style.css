@@ -985,3 +985,93 @@ th code {
     padding: 10px 12px;
   }
 }
+
+/* API reference. One card per item, the declaration in monospace above the
+   sentence the source wrote about it; members of a type sit under it, quieter,
+   because a field is read after the type it belongs to. */
+.api-body {
+  display: grid;
+  gap: 14px;
+}
+
+.api-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.api-item h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.api-signature {
+  display: block;
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--text);
+}
+
+.api-item p {
+  margin: 10px 0 0;
+}
+
+.api-item p code {
+  font-size: 0.88em;
+}
+
+.api-members {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+
+.api-label {
+  margin-bottom: 8px;
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.api-members ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.api-members li {
+  display: grid;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 2px solid var(--accent-soft);
+}
+
+.api-members .api-member .api-signature {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--accent-text);
+  font-size: 0.8rem;
+}
+
+.api-members p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+}

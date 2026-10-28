@@ -39,6 +39,7 @@ pub extend Policy with Debug::{to_repr}
 pub let policy : Policy = { floats: Double, depth: 500, }
 
 ///|
+/// Build a policy by naming the parts that differ from the defaults.
 pub fn Policy::new(
   floats~ : Floats = policy.floats,
   depth~ : Int32 = policy.depth,

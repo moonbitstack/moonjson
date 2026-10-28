@@ -57,6 +57,7 @@ PACKAGES = [
     ("hjson", "src/hjson"),
     ("sink", "src/sink"),
     ("source", "src/source"),
+    ("pretty", "src/pretty"),
 ]
 
 # Methods that a `derive` writes. They are part of the interface and not part of

@@ -1,0 +1,17 @@
+// Pretty-printing JSON — configurable indentation, line endings, and a
+// text-to-text entry point:
+// https://docs.python.org/3/library/json.html#json.dumps  (indent, sort_keys)
+// https://docs.rs/serde_json/latest/serde_json/ser/struct.PrettyFormatter.html
+//
+// The core writer already writes an indented form; this package adds the knobs
+// a formatter wants — tabs instead of spaces, CRLF line endings — and the
+// text-to-text entry point a command-line tool needs, which is what
+// `python -m json.tool` does: read a document, write it back in the chosen
+// shape. It is a package of its own rather than part of the core because the
+// core's `dumps` signature is depended on everywhere and must stay stable, and
+// because a build that never imports this one never compiles it.
+import {
+  "moonbitstack/moonjson",
+  "moonbitstack/moonjson/json",
+  "moonbitlang/core/encoding/utf8",
+}

@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/pretty"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitstack/moonjson",
+}
+
+// Values
+pub fn format(Json, style? : Format) -> String
+
+pub let pretty : Format
+
+pub fn reformat(StringView, style? : Format) -> String raise @moonjson.Refused
+
+pub fn reformat_bytes(BytesView, style? : Format) -> Bytes raise @moonjson.Refused
+
+// Errors
+
+// Types and methods
+pub(all) struct Format {
+  indent : Int32
+  tabs : Bool
+  crlf : Bool
+  sort : Bool
+  ascii : Bool
+} derive(Eq, @debug.Debug)
+pub fn Format::equal(Self, Self) -> Bool
+pub fn Format::new(indent? : Int32, tabs? : Bool, crlf? : Bool, sort? : Bool, ascii? : Bool) -> Self
+pub fn Format::not_equal(Self, Self) -> Bool
+pub fn Format::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

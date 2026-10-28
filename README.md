@@ -80,6 +80,7 @@ let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
 | `zjson` | Zed's ZJSON | github.com/brimdata/zed |
 | `sink` | Streaming NDJSON writer | ndjson-spec |
 | `source` | Streaming NDJSON reader | ndjson-spec |
+| `pretty` | Formatter: spaces or tabs, CRLF, sorted members; text-to-text `reformat` | — |
 | `moonjson` | The scanner the dialects share, the writer, and `Refused` | — |
 
 Each text dialect has the same four faces — `loads`, `load`, `dumps`, `dump` —
@@ -89,6 +90,10 @@ and `dump`. Most text dialects share the one scanner; `hjson` and `cson` bring a
 lenient reader of their own, because their syntax is not a set of switches on
 JSON's. `sink` and `source` are the streaming pair: they hand a sequence of
 documents across one at a time, the same bytes `lines` reads and writes.
+
+`pretty` is the formatter: the same writer with the knobs a formatter wants —
+spaces or tabs, LF or CRLF, sorted members — and `reformat`, which reads a
+document and writes it back, the way `python -m json.tool` does.
 
 `merge` is the one without them: a merge patch has no syntax of its own — the
 patch document is a JSON document, read with `@json.loads` — so the package

@@ -348,6 +348,13 @@ json5 == json -> true</pre>
                 <code>zjson</code>. Their writers emit strict JSON, because that
                 is what each of them is.
               </p>
+              <h3 id="pretty">pretty</h3>
+              <p>
+                A formatter, not a dialect: the same writer with the knobs a
+                formatter wants — spaces or tabs, LF or CRLF, sorted members —
+                and <code>reformat</code>, which reads a document and writes it
+                back, the way <code>python -m json.tool</code> does.
+              </p>
             </div>
           </section>
 

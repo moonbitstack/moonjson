@@ -50,9 +50,9 @@ pub(all) enum Segment {
 
 pub(all) enum Selector {
   Name(String)
-  Index(Int32)
+  Index(Int64)
   Wildcard
-  Slice(start~ : Int32?, end~ : Int32?, step~ : Int32?)
+  Slice(start~ : Int64?, end~ : Int64?, step~ : Int64?)
   Filter(Test)
 }
 

@@ -1235,3 +1235,127 @@ select {
   outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
   outline-offset: 2px;
 }
+
+/* ---------- dropdown ---------- */
+
+/* A native <select> is drawn by the operating system: its popup ignores the
+   page's colours, so it looks pasted on. This is the same control with our own
+   surface, border and shadow, and it keeps the roles a screen reader needs. */
+
+.field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 84px;
+  padding: 6px 10px 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.dropdown-trigger:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border-strong));
+}
+
+.dropdown-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.dropdown-trigger .chevron {
+  margin-left: auto;
+  opacity: 0.55;
+  transition: transform 0.15s ease;
+}
+
+.dropdown[data-open="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow:
+    0 18px 40px -18px rgb(2 6 23 / 55%),
+    0 2px 6px rgb(2 6 23 / 16%);
+}
+
+.dropdown-menu[hidden] {
+  display: none;
+}
+
+.dropdown-menu li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.dropdown-menu li:hover,
+.dropdown-menu li.is-active {
+  background: var(--accent-soft);
+}
+
+.dropdown-menu li[aria-selected="true"] {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.dropdown-menu li .tick {
+  opacity: 0;
+}
+
+.dropdown-menu li[aria-selected="true"] .tick {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-trigger .chevron {
+    transition: none;
+  }
+}
+
+/* While "tabs" is checked the count has no effect; say so quietly. */
+.field[data-muted="true"] {
+  opacity: 0.45;
+}
+
+.dropdown[data-open="true"] .dropdown-trigger {
+  border-color: var(--accent);
+}

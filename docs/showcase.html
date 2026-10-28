@@ -8,7 +8,7 @@
       name="description"
       content="One tree, every notation: this library compiled to JavaScript writes the same document as JSON, CBOR, CBD, UBJSON, Smile, SQLite jsonb and PostgreSQL jsonb, and lays it out live."
     />
-    <link rel="stylesheet" href="assets/style.css?v=2" />
+    <link rel="stylesheet" href="assets/style.css?v=3" />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' font-weight='bold' fill='white' text-anchor='middle'%3E%7B%7D%3C/text%3E%3C/svg%3E"
@@ -110,13 +110,31 @@
         </p>
       </div>
       <div class="controls">
-        <label>indent
-          <select id="fmt-indent">
-            <option value="0">0</option>
-            <option value="2" selected>2</option>
-            <option value="4">4</option>
-          </select>
-        </label>
+        <div class="field" id="indent-field">
+          <span class="field-label" id="indent-label">indent</span>
+          <div class="dropdown" id="indent-dropdown" data-open="false">
+            <button
+              class="dropdown-trigger"
+              type="button"
+              id="indent-trigger"
+              role="combobox"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-controls="indent-menu"
+              aria-labelledby="indent-label indent-value"
+            >
+              <span id="indent-value">2</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            <ul class="dropdown-menu" id="indent-menu" role="listbox" aria-labelledby="indent-label" hidden>
+              <li role="option" id="indent-opt-0" data-value="0" aria-selected="false">0<svg class="tick" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg></li>
+              <li role="option" id="indent-opt-2" data-value="2" aria-selected="true">2<svg class="tick" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg></li>
+              <li role="option" id="indent-opt-4" data-value="4" aria-selected="false">4<svg class="tick" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg></li>
+            </ul>
+          </div>
+        </div>
         <label><input type="checkbox" id="fmt-tabs" /> tabs</label>
         <label><input type="checkbox" id="fmt-sort" /> sort names</label>
         <label><input type="checkbox" id="fmt-ascii" /> ASCII only</label>
@@ -140,7 +158,8 @@
       </div>
     </footer>
 
-    <script src="assets/moonjson.js"></script>
+    <script src="assets/app.js?v=3"></script>
+    <script src="assets/moonjson.js?v=3"></script>
     <script>
       (function () {
         var api = globalThis.moonjson;
@@ -148,7 +167,12 @@
         var out = document.getElementById("notation-out");
         var lang = document.getElementById("notation-lang");
         var fmtOut = document.getElementById("fmt-out");
-        var indent = document.getElementById("fmt-indent");
+        var indentDrop = document.getElementById("indent-dropdown");
+        var indentTrigger = document.getElementById("indent-trigger");
+        var indentMenu = document.getElementById("indent-menu");
+        var indentValue = document.getElementById("indent-value");
+        var indentOptions = indentMenu.querySelectorAll("[role='option']");
+        var indent = 2;
         var tabs = document.getElementById("fmt-tabs");
         var sort = document.getElementById("fmt-sort");
         var ascii = document.getElementById("fmt-ascii");
@@ -177,7 +201,7 @@
           }
           fmtOut.textContent = api.format(
             doc.value,
-            parseInt(indent.value, 10),
+            indent,
             tabs.checked,
             sort.checked,
             ascii.checked
@@ -200,11 +224,113 @@
           })(buttons[i]);
         }
         doc.addEventListener("input", renderAll);
-        var ctrls = [indent, tabs, sort, ascii];
-        for (var k = 0; k < ctrls.length; k++) {
-          ctrls[k].addEventListener("input", renderFormat);
-          ctrls[k].addEventListener("change", renderFormat);
+        [tabs, sort, ascii].forEach(function (box) {
+          box.addEventListener("input", renderFormat);
+          box.addEventListener("change", renderFormat);
+        });
+        var indentField = document.getElementById("indent-field");
+        function reflectTabs() {
+          indentField.setAttribute("data-muted", String(tabs.checked));
+          indentField.title = tabs.checked
+            ? "One tab a level replaces the space count"
+            : "";
         }
+        tabs.addEventListener("change", reflectTabs);
+
+        // --- the indent dropdown ---------------------------------------------
+
+        function markOptions() {
+          for (var i = 0; i < indentOptions.length; i++) {
+            indentOptions[i].setAttribute(
+              "aria-selected",
+              String(Number(indentOptions[i].dataset.value) === indent)
+            );
+          }
+        }
+        function chooseIndent(value) {
+          indent = value;
+          indentValue.textContent = String(value);
+          markOptions();
+          renderFormat();
+        }
+        function openMenu(open) {
+          indentDrop.setAttribute("data-open", String(open));
+          indentTrigger.setAttribute("aria-expanded", String(open));
+          indentMenu.hidden = !open;
+          if (!open) {
+            indentTrigger.removeAttribute("aria-activedescendant");
+          }
+          for (var i = 0; i < indentOptions.length; i++) {
+            indentOptions[i].classList.remove("is-active");
+          }
+          if (open) {
+            var current = null;
+            for (var j = 0; j < indentOptions.length; j++) {
+              if (Number(indentOptions[j].dataset.value) === indent) {
+                current = indentOptions[j];
+              }
+            }
+            var first = current || indentOptions[0];
+            first.classList.add("is-active");
+            indentTrigger.setAttribute("aria-activedescendant", first.id);
+          }
+        }
+        function moveActive(step) {
+          var list = Array.prototype.slice.call(indentOptions);
+          var active = indentMenu.querySelector("li.is-active");
+          var at = list.indexOf(active);
+          var next = Math.min(list.length - 1, Math.max(0, at + step));
+          for (var i = 0; i < list.length; i++) {
+            list[i].classList.toggle("is-active", i === next);
+          }
+          indentTrigger.setAttribute("aria-activedescendant", list[next].id);
+        }
+        indentTrigger.addEventListener("click", function () {
+          openMenu(indentMenu.hidden);
+        });
+        indentTrigger.addEventListener("keydown", function (event) {
+          var open = !indentMenu.hidden;
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            if (!open) {
+              openMenu(true);
+            } else {
+              moveActive(event.key === "ArrowDown" ? 1 : -1);
+            }
+          } else if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            var active = indentMenu.querySelector("li.is-active");
+            if (!open) {
+              openMenu(true);
+            } else if (active) {
+              chooseIndent(Number(active.dataset.value));
+              openMenu(false);
+            }
+          } else if (event.key === "Escape" && open) {
+            event.preventDefault();
+            openMenu(false);
+          }
+        });
+        for (var n = 0; n < indentOptions.length; n++) {
+          (function (option) {
+            option.addEventListener("mouseenter", function () {
+              for (var i = 0; i < indentOptions.length; i++) {
+                indentOptions[i].classList.remove("is-active");
+              }
+              option.classList.add("is-active");
+            });
+            option.addEventListener("click", function () {
+              chooseIndent(Number(option.dataset.value));
+              openMenu(false);
+              indentTrigger.focus();
+            });
+          })(indentOptions[n]);
+        }
+        document.addEventListener("click", function (event) {
+          if (!indentMenu.hidden && !indentDrop.contains(event.target)) {
+            openMenu(false);
+          }
+        });
         for (var m = 0; m < buttons.length; m++) {
           buttons[m].setAttribute("aria-selected", String(buttons[m].dataset.note === current));
         }
@@ -227,6 +353,7 @@
         copy(document.getElementById("copy-note"), out);
         copy(document.getElementById("copy-fmt"), fmtOut);
 
+        reflectTabs();
         renderAll();
       })();
     </script>

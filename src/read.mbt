@@ -278,15 +278,45 @@ fn Reader::array(self : Reader, depth : Int32) -> Json raise Refused {
 ///|
 /// An unquoted member name (JSON5 §4): an ECMAScript identifier. `$` and `_`
 /// start one, as does any letter; digits may follow.
+///
+/// A `\uXXXX` escape names a character as well, because the specification's
+/// `IdentifierName` allows one: `a\u0062` and `ab` are the same member.
 fn Reader::name(self : Reader) -> String raise Refused {
-  let start = self.i
-  while is_name_part(self.here(), self.i == start) {
+  let begin = self.i
+  let out = StringBuilder()
+  let mut run = self.i
+  let mut first = true
+  let mut escaped = false
+  while true {
+    let c = self.here()
+    if c == 0x5C && self.peek(self.i + 1) == 0x75 {
+      out.write_view(self.src[run:self.i])
+      let at = self.i
+      self.i += 2
+      let value = self.quad(at)
+      if !is_name_part(value, first) {
+        raise BadEscape(self.spot(at))
+      }
+      out.write_char(value.unsafe_to_char())
+      first = false
+      escaped = true
+      run = self.i
+      continue
+    }
+    if !is_name_part(c, first) {
+      break
+    }
     self.i += 1
+    first = false
   }
-  if self.i == start {
+  if first {
     raise self.fail()
   }
-  self.src[start:self.i].to_owned()
+  if !escaped {
+    return self.src[begin:self.i].to_owned()
+  }
+  out.write_view(self.src[run:self.i])
+  out.to_string()
 }
 
 ///|

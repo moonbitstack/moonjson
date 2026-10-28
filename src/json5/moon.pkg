@@ -6,3 +6,7 @@
 import {
   "moonbitstack/moonjson",
 }
+
+import {
+  "moonbitlang/core/double",
+} for "test"

@@ -1,0 +1,12 @@
+// The bytes the showcase page shows, printed so the page can be checked:
+// `moon run src/examples/showcase`.
+pkgtype(kind: "executable")
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitstack/moonjson/cbor",
+  "moonbitstack/moonjson/cbd",
+  "moonbitstack/moonjson/jsonb/sqlite",
+  "moonbitstack/moonjson/jsonb/pg",
+  "moonbitlang/core/encoding/hex",
+}

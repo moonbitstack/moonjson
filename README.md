@@ -5,6 +5,7 @@ The JSON family for MoonBit: one tree, several ways of writing it.
 [Home](https://moonbitstack.github.io/moonjson/) ·
 [Guide](https://moonbitstack.github.io/moonjson/docs.html) ·
 [API](https://moonbitstack.github.io/moonjson/api.html) ·
+[Showcase](https://moonbitstack.github.io/moonjson/showcase.html) ·
 [Mooncakes](https://mooncakes.io/docs/moonbitstack/moonjson)
 
 ```moonbit

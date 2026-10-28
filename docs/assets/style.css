@@ -1079,3 +1079,126 @@ th code {
   font-size: 0.92rem;
   color: var(--muted);
 }
+
+/* ---------- scrollbars ---------- */
+
+/* WebKit engines (Chrome, Safari, Edge) read these. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Firefox reads the standard properties. Chrome ignores ::-webkit-scrollbar
+   when scrollbar-color is set, so this is scoped to engines that do not have
+   ::-webkit-scrollbar at all. */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+/* Code is read to be typed: no ligatures that turn >= into ≥ or => into ⇒. */
+html,
+button,
+input,
+textarea,
+select {
+  font-variant-ligatures: no-contextual;
+}
+
+/* ---------- showcase ---------- */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.tabs button {
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+.tabs button:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.tabs button[aria-selected="true"] {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  color: var(--accent-text);
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin: 0 0 14px;
+}
+.controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+.controls select {
+  font: inherit;
+  font-size: 0.86rem;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+}
+.demo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+.demo-grid textarea {
+  width: 100%;
+  min-height: 230px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  background: var(--code-bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.65;
+  tab-size: 2;
+  resize: vertical;
+}
+.demo-grid .code-card pre {
+  min-height: 230px;
+  max-height: 420px;
+  overflow: auto;
+}
+@media (width <= 760px) {
+  .demo-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Showcase — moonjson</title>
+    <meta
+      name="description"
+      content="One tree, every notation: the same document as JSON, JSON5, Hjson, CBOR, CBD, SQLite jsonb and PostgreSQL jsonb, with the library's real bytes — and a formatter you can drive live."
+    />
+    <link rel="stylesheet" href="assets/style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' font-weight='bold' fill='white' text-anchor='middle'%3E%7B%7D%3C/text%3E%3C/svg%3E"
+    />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("moonjson-theme");
+        } catch (e) {
+          t = null;
+        }
+        if (!t) {
+          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)")
+            .matches
+            ? "dark"
+            : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="inner">
+        <a class="wordmark" href="index.html">
+          <span class="glyph">{}</span>
+          <span>moonjson</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+          <a href="index.html">Home</a>
+          <a href="docs.html">Docs</a>
+          <a href="examples.html">Examples</a>
+          <a href="showcase.html" aria-current="page">Showcase</a>
+        </nav>
+        <div class="header-tools">
+          <button class="icon-button" type="button" data-theme-toggle aria-label="Switch theme">
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+            </svg>
+          </button>
+          <a class="icon-button" href="https://github.com/moonbitstack/moonjson" aria-label="GitHub repository">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.1 0 4.7-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5z" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap" style="padding-top: 56px">
+      <div class="section-head">
+        <div class="kicker">showcase</div>
+        <h2>One tree, every notation</h2>
+        <p>
+          Every notation carries the same tree, so a document written one way
+          reads back the same written another. Pick a notation to see the
+          document that way. The binary bytes are the library's real output,
+          printed by <code>moon run src/examples/showcase</code>.
+        </p>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Notation">
+        <button type="button" data-note="json" role="tab">JSON</button>
+        <button type="button" data-note="json5" role="tab">JSON5</button>
+        <button type="button" data-note="hjson" role="tab">Hjson</button>
+        <button type="button" data-note="cbor" role="tab">CBOR</button>
+        <button type="button" data-note="cbd" role="tab">CBD</button>
+        <button type="button" data-note="sqlite" role="tab">SQLite jsonb</button>
+        <button type="button" data-note="pg" role="tab">PostgreSQL jsonb</button>
+      </div>
+      <div class="code-card">
+        <div class="bar"><span class="lang" id="notation-lang">JSON</span><span class="spacer"></span></div>
+        <pre id="notation-out">{"name":"John","age":30}</pre>
+      </div>
+
+      <div class="section-head" style="margin-top: 56px">
+        <div class="kicker">formatter</div>
+        <h2>Lay it out your way</h2>
+        <p>
+          The formatter applies the same rules as <code>@pretty</code>: an indent
+          in spaces, or one tab a level, names sorted, and every character above
+          U+007E escaped as ASCII. Edit the document on the left; the right
+          redraws.
+        </p>
+      </div>
+      <div class="controls">
+        <label>indent
+          <select id="fmt-indent">
+            <option value="0">0</option>
+            <option value="2" selected>2</option>
+            <option value="4">4</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="fmt-tabs" /> tabs</label>
+        <label><input type="checkbox" id="fmt-sort" /> sort names</label>
+        <label><input type="checkbox" id="fmt-ascii" /> ASCII only</label>
+      </div>
+      <div class="demo-grid">
+        <textarea id="fmt-in" spellcheck="false" aria-label="JSON input">{"name":"John","age":30,"tags":["a","b"],"note":"café"}</textarea>
+        <div class="code-card">
+          <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+          <pre id="fmt-out"></pre>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="inner">
+        <span>moonjson — the JSON family for MoonBit. Apache-2.0.</span>
+        <div class="links">
+          <a href="docs.html">Docs</a>
+          <a href="examples.html">Examples</a>
+          <a href="showcase.html">Showcase</a>
+          <a href="api.html">API</a>
+          <a href="https://github.com/moonbitstack/moonjson">GitHub</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/app.js"></script>
+    <script>
+      (function () {
+        var NOTES = {
+          json: '{"name":"John","age":30}',
+          json5: "{name: 'John', age: 30,}",
+          hjson: "name: John\nage: 30",
+          cbor: "a263616765181e646e616d65644a6f686e",
+          cbd: "cbd1010002046e616d6503616765a1020160044a6f686e02401e",
+          sqlite: "cc1137616765233330476e616d65474a6f686e",
+          pg: "00000135000000040000000c0000000f0000000d0000000d0000003005000000036167650000003c040001000000000000001e0000003405000000046e616d650000003405000000044a6f686e"
+        };
+        var LABEL = { json: "JSON", json5: "JSON5", hjson: "Hjson", cbor: "CBOR", cbd: "CBD", sqlite: "SQLite jsonb", pg: "PostgreSQL jsonb" };
+        var buttons = document.querySelectorAll("[data-note]");
+        var out = document.getElementById("notation-out");
+        var lang = document.getElementById("notation-lang");
+        function select(name) {
+          for (var i = 0; i < buttons.length; i++) {
+            buttons[i].setAttribute("aria-selected", String(buttons[i].dataset.note === name));
+          }
+          out.textContent = NOTES[name] || "";
+          lang.textContent = LABEL[name] || name;
+        }
+        for (var i = 0; i < buttons.length; i++) {
+          (function (b) {
+            b.addEventListener("click", function () {
+              select(b.dataset.note);
+            });
+          })(buttons[i]);
+        }
+        select("json");
+
+        function quote(s, ascii) {
+          var out = '"';
+          for (var i = 0; i < s.length; i++) {
+            var c = s.charCodeAt(i);
+            if (c === 0x22) out += '\\"';
+            else if (c === 0x5c) out += '\\\\';
+            else if (c === 0x08) out += '\\b';
+            else if (c === 0x0c) out += '\\f';
+            else if (c === 0x0a) out += '\\n';
+            else if (c === 0x0d) out += '\\r';
+            else if (c === 0x09) out += '\\t';
+            else if (c < 0x20 || (ascii && c > 0x7e)) {
+              out += '\\u' + c.toString(16).padStart(4, '0');
+            } else out += s.charAt(i);
+          }
+          return out + '"';
+        }
+
+        function fmtValue(v, opt, level) {
+          var compact = opt.indent === 0 && !opt.tabs;
+          var nl = compact ? "" : "\n";
+          var colon = compact ? ":" : ": ";
+          var padUnit = function (n) {
+            return opt.tabs ? "\t".repeat(n) : " ".repeat(opt.indent * n);
+          };
+          if (v === null) return "null";
+          if (v === true) return "true";
+          if (v === false) return "false";
+          if (typeof v === "number") return JSON.stringify(v);
+          if (typeof v === "string") return quote(v, opt.ascii);
+          if (Array.isArray(v)) {
+            if (v.length === 0) return "[]";
+            var items = v.map(function (x) {
+              return padUnit(level + 1) + fmtValue(x, opt, level + 1);
+            });
+            if (compact) return "[" + items.join(",") + "]";
+            return "[" + nl + items.join("," + nl) + nl + padUnit(level) + "]";
+          }
+          var keys = Object.keys(v);
+          if (opt.sort) keys.sort();
+          if (keys.length === 0) return "{}";
+          var pairs = keys.map(function (k) {
+            return padUnit(level + 1) + quote(k, opt.ascii) + colon + fmtValue(v[k], opt, level + 1);
+          });
+          if (compact) return "{" + pairs.join(",") + "}";
+          return "{" + nl + pairs.join("," + nl) + nl + padUnit(level) + "}";
+        }
+
+        var input = document.getElementById("fmt-in");
+        var output = document.getElementById("fmt-out");
+        var indent = document.getElementById("fmt-indent");
+        var tabs = document.getElementById("fmt-tabs");
+        var sort = document.getElementById("fmt-sort");
+        var ascii = document.getElementById("fmt-ascii");
+        function render() {
+          var opt = {
+            indent: parseInt(indent.value, 10),
+            tabs: tabs.checked,
+            sort: sort.checked,
+            ascii: ascii.checked
+          };
+          try {
+            output.textContent = fmtValue(JSON.parse(input.value), opt, 0);
+          } catch (e) {
+            output.textContent = "// not JSON: " + e.message;
+          }
+        }
+        var controls = [input, indent, tabs, sort, ascii];
+        for (var k = 0; k < controls.length; k++) {
+          controls[k].addEventListener("input", render);
+          controls[k].addEventListener("change", render);
+        }
+        render();
+      })();
+    </script>
+  </body>
+</html>

@@ -6,7 +6,7 @@
     <title>Showcase — moonjson</title>
     <meta
       name="description"
-      content="One tree, every notation: the same document as JSON, JSON5, Hjson, CBOR, CBD, SQLite jsonb and PostgreSQL jsonb, with the library's real bytes — and a formatter you can drive live."
+      content="One tree, every notation: this library compiled to JavaScript writes the same document as JSON, CBOR, CBD, UBJSON, Smile, SQLite jsonb and PostgreSQL jsonb, and lays it out live."
     />
     <link rel="stylesheet" href="assets/style.css" />
     <link
@@ -67,35 +67,46 @@
         <div class="kicker">showcase</div>
         <h2>One tree, every notation</h2>
         <p>
-          Every notation carries the same tree, so a document written one way
-          reads back the same written another. Pick a notation to see the
-          document that way. The binary bytes are the library's real output,
-          printed by <code>moon run src/examples/showcase</code>.
+          Everything below is this library compiled to JavaScript — the same code
+          the tests run, in the browser. Edit the document; the notation and the
+          layout follow. A value written one way reads back the same written
+          another.
+        </p>
+      </div>
+
+      <textarea id="doc" class="doc-input" spellcheck="false" aria-label="The document">{"name":"John","age":30,"tags":["a","b"],"note":"café"}</textarea>
+
+      <div class="section-head" style="margin-top: 8px">
+        <div class="kicker">notations</div>
+        <h2>Written every way</h2>
+        <p>
+          Pick a notation to see the document that way. The text is the core
+          writer; the hex is the format's encoder, byte for byte.
         </p>
       </div>
 
       <div class="tabs" role="tablist" aria-label="Notation">
         <button type="button" data-note="json" role="tab">JSON</button>
-        <button type="button" data-note="json5" role="tab">JSON5</button>
-        <button type="button" data-note="hjson" role="tab">Hjson</button>
+        <button type="button" data-note="pretty" role="tab">JSON, indented</button>
         <button type="button" data-note="cbor" role="tab">CBOR</button>
         <button type="button" data-note="cbd" role="tab">CBD</button>
+        <button type="button" data-note="ubjson" role="tab">UBJSON</button>
+        <button type="button" data-note="smile" role="tab">Smile</button>
         <button type="button" data-note="sqlite" role="tab">SQLite jsonb</button>
         <button type="button" data-note="pg" role="tab">PostgreSQL jsonb</button>
       </div>
       <div class="code-card">
-        <div class="bar"><span class="lang" id="notation-lang">JSON</span><span class="spacer"></span></div>
-        <pre id="notation-out">{"name":"John","age":30}</pre>
+        <div class="bar"><span class="lang" id="notation-lang">JSON</span><span class="spacer"></span><button class="copy" type="button" id="copy-note">copy</button></div>
+        <pre id="notation-out"></pre>
       </div>
 
       <div class="section-head" style="margin-top: 56px">
         <div class="kicker">formatter</div>
         <h2>Lay it out your way</h2>
         <p>
-          The formatter applies the same rules as <code>@pretty</code>: an indent
-          in spaces, or one tab a level, names sorted, and every character above
-          U+007E escaped as ASCII. Edit the document on the left; the right
-          redraws.
+          The formatter takes an indent in spaces, or one tab a level, sorts the
+          names, and escapes everything above U+007E as ASCII. It is the library's
+          formatter, not a copy of it.
         </p>
       </div>
       <div class="controls">
@@ -110,12 +121,9 @@
         <label><input type="checkbox" id="fmt-sort" /> sort names</label>
         <label><input type="checkbox" id="fmt-ascii" /> ASCII only</label>
       </div>
-      <div class="demo-grid">
-        <textarea id="fmt-in" spellcheck="false" aria-label="JSON input">{"name":"John","age":30,"tags":["a","b"],"note":"café"}</textarea>
-        <div class="code-card">
-          <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
-          <pre id="fmt-out"></pre>
-        </div>
+      <div class="code-card">
+        <div class="bar"><span class="lang">output</span><span class="spacer"></span><button class="copy" type="button" id="copy-fmt">copy</button></div>
+        <pre id="fmt-out"></pre>
       </div>
     </main>
 
@@ -132,111 +140,94 @@
       </div>
     </footer>
 
-    <script src="assets/app.js"></script>
+    <script src="assets/moonjson.js"></script>
     <script>
       (function () {
-        var NOTES = {
-          json: '{"name":"John","age":30}',
-          json5: "{name: 'John', age: 30,}",
-          hjson: "name: John\nage: 30",
-          cbor: "a263616765181e646e616d65644a6f686e",
-          cbd: "cbd1010002046e616d6503616765a1020160044a6f686e02401e",
-          sqlite: "cc1137616765233330476e616d65474a6f686e",
-          pg: "00000135000000040000000c0000000f0000000d0000000d0000003005000000036167650000003c040001000000000000001e0000003405000000046e616d650000003405000000044a6f686e"
-        };
-        var LABEL = { json: "JSON", json5: "JSON5", hjson: "Hjson", cbor: "CBOR", cbd: "CBD", sqlite: "SQLite jsonb", pg: "PostgreSQL jsonb" };
-        var buttons = document.querySelectorAll("[data-note]");
+        var api = globalThis.moonjson;
+        var doc = document.getElementById("doc");
         var out = document.getElementById("notation-out");
         var lang = document.getElementById("notation-lang");
-        function select(name) {
-          for (var i = 0; i < buttons.length; i++) {
-            buttons[i].setAttribute("aria-selected", String(buttons[i].dataset.note === name));
-          }
-          out.textContent = NOTES[name] || "";
-          lang.textContent = LABEL[name] || name;
-        }
-        for (var i = 0; i < buttons.length; i++) {
-          (function (b) {
-            b.addEventListener("click", function () {
-              select(b.dataset.note);
-            });
-          })(buttons[i]);
-        }
-        select("json");
-
-        function quote(s, ascii) {
-          var out = '"';
-          for (var i = 0; i < s.length; i++) {
-            var c = s.charCodeAt(i);
-            if (c === 0x22) out += '\\"';
-            else if (c === 0x5c) out += '\\\\';
-            else if (c === 0x08) out += '\\b';
-            else if (c === 0x0c) out += '\\f';
-            else if (c === 0x0a) out += '\\n';
-            else if (c === 0x0d) out += '\\r';
-            else if (c === 0x09) out += '\\t';
-            else if (c < 0x20 || (ascii && c > 0x7e)) {
-              out += '\\u' + c.toString(16).padStart(4, '0');
-            } else out += s.charAt(i);
-          }
-          return out + '"';
-        }
-
-        function fmtValue(v, opt, level) {
-          var compact = opt.indent === 0 && !opt.tabs;
-          var nl = compact ? "" : "\n";
-          var colon = compact ? ":" : ": ";
-          var padUnit = function (n) {
-            return opt.tabs ? "\t".repeat(n) : " ".repeat(opt.indent * n);
-          };
-          if (v === null) return "null";
-          if (v === true) return "true";
-          if (v === false) return "false";
-          if (typeof v === "number") return JSON.stringify(v);
-          if (typeof v === "string") return quote(v, opt.ascii);
-          if (Array.isArray(v)) {
-            if (v.length === 0) return "[]";
-            var items = v.map(function (x) {
-              return padUnit(level + 1) + fmtValue(x, opt, level + 1);
-            });
-            if (compact) return "[" + items.join(",") + "]";
-            return "[" + nl + items.join("," + nl) + nl + padUnit(level) + "]";
-          }
-          var keys = Object.keys(v);
-          if (opt.sort) keys.sort();
-          if (keys.length === 0) return "{}";
-          var pairs = keys.map(function (k) {
-            return padUnit(level + 1) + quote(k, opt.ascii) + colon + fmtValue(v[k], opt, level + 1);
-          });
-          if (compact) return "{" + pairs.join(",") + "}";
-          return "{" + nl + pairs.join("," + nl) + nl + padUnit(level) + "}";
-        }
-
-        var input = document.getElementById("fmt-in");
-        var output = document.getElementById("fmt-out");
+        var fmtOut = document.getElementById("fmt-out");
         var indent = document.getElementById("fmt-indent");
         var tabs = document.getElementById("fmt-tabs");
         var sort = document.getElementById("fmt-sort");
         var ascii = document.getElementById("fmt-ascii");
-        function render() {
-          var opt = {
-            indent: parseInt(indent.value, 10),
-            tabs: tabs.checked,
-            sort: sort.checked,
-            ascii: ascii.checked
-          };
-          try {
-            output.textContent = fmtValue(JSON.parse(input.value), opt, 0);
-          } catch (e) {
-            output.textContent = "// not JSON: " + e.message;
+        var buttons = document.querySelectorAll("[data-note]");
+        var current = "json";
+        var LABEL = {
+          json: "JSON",
+          pretty: "JSON, indented",
+          cbor: "CBOR",
+          cbd: "CBD",
+          ubjson: "UBJSON",
+          smile: "Smile",
+          sqlite: "SQLite jsonb",
+          pg: "PostgreSQL jsonb"
+        };
+        var MISSING = "// this library did not load";
+
+        function renderNotation() {
+          out.textContent = api ? api.notation(doc.value, current) : MISSING;
+          lang.textContent = LABEL[current] || current;
+        }
+        function renderFormat() {
+          if (!api) {
+            fmtOut.textContent = MISSING;
+            return;
           }
+          fmtOut.textContent = api.format(
+            doc.value,
+            parseInt(indent.value, 10),
+            tabs.checked,
+            sort.checked,
+            ascii.checked
+          );
         }
-        var controls = [input, indent, tabs, sort, ascii];
-        for (var k = 0; k < controls.length; k++) {
-          controls[k].addEventListener("input", render);
-          controls[k].addEventListener("change", render);
+        function renderAll() {
+          renderNotation();
+          renderFormat();
         }
-        render();
+
+        for (var i = 0; i < buttons.length; i++) {
+          (function (b) {
+            b.addEventListener("click", function () {
+              current = b.dataset.note;
+              for (var j = 0; j < buttons.length; j++) {
+                buttons[j].setAttribute("aria-selected", String(buttons[j].dataset.note === current));
+              }
+              renderNotation();
+            });
+          })(buttons[i]);
+        }
+        doc.addEventListener("input", renderAll);
+        var ctrls = [indent, tabs, sort, ascii];
+        for (var k = 0; k < ctrls.length; k++) {
+          ctrls[k].addEventListener("input", renderFormat);
+          ctrls[k].addEventListener("change", renderFormat);
+        }
+        for (var m = 0; m < buttons.length; m++) {
+          buttons[m].setAttribute("aria-selected", String(buttons[m].dataset.note === current));
+        }
+
+        function copy(button, node) {
+          if (!button || !node) {
+            return;
+          }
+          button.addEventListener("click", function () {
+            var text = node.textContent || "";
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text);
+            }
+            button.textContent = "copied";
+            setTimeout(function () {
+              button.textContent = "copy";
+            }, 1200);
+          });
+        }
+        copy(document.getElementById("copy-note"), out);
+        copy(document.getElementById("copy-fmt"), fmtOut);
+
+        renderAll();
       })();
     </script>
   </body>

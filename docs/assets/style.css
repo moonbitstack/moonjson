@@ -1202,3 +1202,19 @@ select {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.doc-input {
+  width: 100%;
+  min-height: 120px;
+  margin: 0 0 24px;
+  padding: 14px 16px;
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  background: var(--code-bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  tab-size: 2;
+  resize: vertical;
+}

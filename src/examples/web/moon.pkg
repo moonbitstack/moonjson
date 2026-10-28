@@ -1,0 +1,23 @@
+// Browser bridge: installs the library on `globalThis` for the showcase page,
+// so the page runs this library compiled with the JavaScript backend rather
+// than a reimplementation. Build it with
+//
+//     moon build --target js src/examples/web
+//
+// and the page calls `globalThis.moonjson.format(...)` and
+// `globalThis.moonjson.notation(...)`.
+pkgtype(kind: "executable")
+
+supported_targets = "js"
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitstack/moonjson/pretty",
+  "moonbitstack/moonjson/cbor",
+  "moonbitstack/moonjson/cbd",
+  "moonbitstack/moonjson/ubjson",
+  "moonbitstack/moonjson/smile",
+  "moonbitstack/moonjson/jsonb/sqlite",
+  "moonbitstack/moonjson/jsonb/pg",
+  "moonbitlang/core/encoding/hex",
+}

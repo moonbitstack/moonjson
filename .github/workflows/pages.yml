@@ -31,6 +31,16 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+
+      - name: post install
+        run: |
+          moon version --all
+          moon update
+
       # One page is generated: the API reference, from the interfaces and the
       # doc comments. Everything else is written by hand and served as it is.
       # A page that disagrees with the source is not deployed.
@@ -38,6 +48,14 @@ jobs:
         run: |
           python3 scripts/gen_api.py
           git diff --exit-code docs/api.html
+
+      # The showcase runs the library itself: compile it with the JavaScript
+      # backend and copy the bundle beside the page. The bundle is a build
+      # product and is not committed.
+      - name: compile the library to JavaScript for the showcase
+        run: |
+          moon build --target js --release src/examples/web
+          cp _build/js/release/build/examples/web/web.js docs/assets/moonjson.js
 
       - uses: actions/configure-pages@v6
         with:

@@ -1,0 +1,10 @@
+// Streaming JSON sink — newline-delimited JSON (NDJSON): https://github.com/ndjson/ndjson-spec
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/encoding/utf8",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitstack/moonjson/lines",
+} for "test"

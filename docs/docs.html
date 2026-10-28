@@ -323,6 +323,31 @@ json5 == json -> true</pre>
                 A number that is not finite has no canonical form and is refused
                 rather than replaced with <code>null</code>.
               </p>
+              <h3 id="hjson">hjson</h3>
+              <p>
+                Hjson, "a user interface for JSON": comments of three kinds, the
+                braces around an object and the brackets around an array both
+                optional, keys that need not be quoted, commas optional, and
+                multiline strings opened with <code>'''</code> or
+                <code>"""</code>. The reader is real and lenient; the writer emits
+                strict JSON, because Hjson has no canonical text form.
+              </p>
+              <h3 id="cson">cson</h3>
+              <p>
+                CSON, CoffeeScript Object Notation: indentation instead of braces,
+                a line beginning with <code>- </code> for an array element,
+                <code>#</code> comments. A real indentation parser; the writer is
+                strict JSON.
+              </p>
+              <h3 id="more-json">the JSON-shaped dialects</h3>
+              <p>
+                Several formats are JSON itself under another name, so their
+                packages read and write the same tree through <code>@moonjson</code>:
+                <code>superjson</code>, <code>ntv</code>, <code>rjson</code>,
+                <code>json11</code>, <code>jsonz</code>, <code>zson</code> and
+                <code>zjson</code>. Their writers emit strict JSON, because that
+                is what each of them is.
+              </p>
             </div>
           </section>
 
@@ -505,9 +530,12 @@ query.select(shelf)</pre>
               <div class="kicker">eight</div>
               <h2>The binary formats</h2>
               <p>
-                CBOR, MessagePack and BSON: three encodings of the same tree,
-                each with its own package and its own specification, each with
-                the two verbs that take bytes.
+                Ten encodings of the same tree. CBOR, MessagePack and BSON are
+                the three everybody meets; UBJSON, Smile and BJSON are the next
+                tier; KRSON and CompactBinaryData are compact newcomers; and the
+                two database-native ones are SQLite's <code>jsonb</code> and
+                PostgreSQL's <code>jsonb</code>. Each has its own package and its
+                own specification, each with the two verbs that take bytes.
               </p>
             </div>
             <div class="prose">
@@ -549,6 +577,16 @@ query.select(shelf)</pre>
                 with one object type needs one reserved name. The root package
                 holds the scanner every dialect shares, the writer, the
                 <code>Flavor</code> record and <code>Refused</code>.
+              </p>
+              <p>
+                Every one of the seven extra binaries — UBJSON, Smile, BJSON,
+                KRSON, CompactBinaryData, SQLite <code>jsonb</code> and
+                PostgreSQL <code>jsonb</code> — keeps the same promise: a tree
+                read from one and written to another is unchanged, and a byte
+                string crosses them all as <code>$bytes</code>. The streaming
+                pair, <code>sink</code> and <code>source</code>, carries a
+                sequence of documents one at a time in the NDJSON shape that
+                <code>lines</code> reads and writes.
               </p>
               <div class="note">
                 <span class="label">everything public</span>

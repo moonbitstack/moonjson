@@ -1,0 +1,14 @@
+// rjson — the Ruby `json` library (https://ruby-doc.org/stdlib/libdoc/json/rdoc/JSON.html).
+//
+// "rjson" is most often a shorthand for the Ruby `json` standard-library, or the
+// `rjson` gem built on it. Both serialize Ruby objects to standard JSON and
+// parse standard JSON back; there is no separate "rjson" textual grammar. This
+// package therefore delegates to `@moonjson` — an rjson payload is exactly JSON.
+import {
+  "moonbitstack/moonjson",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitlang/core/encoding/utf8",
+} for "test"

@@ -1,0 +1,17 @@
+// ZSON — https://github.com/postgrespro/zson
+//
+// ZSON is a PostgreSQL extension for transparent JSONB compression. It is a
+// server-side, dictionary-trained compression of JSONB; it is NOT a portable
+// wire format — the stored bytes depend on a per-database trained dictionary, so
+// no standalone decoder is possible. What travels between systems is JSONB, i.e.
+// JSON. This package therefore delegates to the shared JSON reader/writer; see
+// `zson.mbt` for the full design note. (Do not confuse it with ZJSON, the Zed
+// JSON encoding, which lives in `moonbitstack/moonjson/zjson`.)
+import {
+  "moonbitstack/moonjson",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitlang/core/encoding/utf8",
+} for "test"

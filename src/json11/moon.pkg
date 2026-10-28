@@ -1,0 +1,14 @@
+// json11 — the dropbox/json11 C++11 JSON library (https://github.com/dropbox/json11).
+//
+// json11 is a tiny C++11 library providing JSON parsing and serialization; its
+// output is standard JSON (RFC 8259) — the library adds no syntax of its own.
+// This package therefore delegates to `@moonjson` — a json11 payload is exactly
+// JSON.
+import {
+  "moonbitstack/moonjson",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitlang/core/encoding/utf8",
+} for "test"

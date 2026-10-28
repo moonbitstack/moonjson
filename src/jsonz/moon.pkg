@@ -1,0 +1,17 @@
+// jsonz — JSON-Z, "JSON for Everyone" (https://www.npmjs.com/package/json-z).
+//
+// JSON-Z is a superset of JSON (and of JSON5) that adds comments, single and
+// backtick quotes, unquoted keys, trailing commas, hex/octal/binary numbers,
+// `+`-prefixed and `Infinity`/`-Infinity`/`NaN` numbers, and more. This package
+// reads and writes the JSON-representable subset by delegating to `@moonjson`'s
+// relaxed reader; the JSON-Z-exclusive numeric suffixes (BigInt `n`, decimal
+// `m`, Decimal128 `d`), sparse arrays, `undefined`, and extended typed
+// containers cannot be held by the shared `Json` tree and are out of scope.
+import {
+  "moonbitstack/moonjson",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitlang/core/encoding/utf8",
+} for "test"

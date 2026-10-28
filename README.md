@@ -62,12 +62,33 @@ let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
 | `cbor` | CBOR, the binary encoding JSON's own working group wrote | RFC 8949 |
 | `msgpack` | MessagePack | msgpack.org |
 | `bson` | BSON, what MongoDB stores and sends | bsonspec.org |
+| `ubjson` | Universal Binary JSON | ubjson.org |
+| `smile` | Smile, Jackson's binary JSON | github.com/FasterXML/smile-format-specification |
+| `bjson` | Binary JSON, the bjson.org draft | bjson.org |
+| `krson` | KRSON, a schemaless binary JSON | crates.io/crates/krson-core |
+| `cbd` | CompactBinaryData: a 5-byte header, 3-bit type descriptors | github.com/makalin/CBD |
+| `jsonb/sqlite` | SQLite's `jsonb` | sqlite.org/jsonb.html |
+| `jsonb/pg` | PostgreSQL's on-disk `jsonb` | postgresql.org/docs/current/datatype-json |
+| `hjson` | Hjson: comments, quoteless keys, commas optional | hjson.github.io |
+| `cson` | CSON, CoffeeScript-style indentation | github.com/bevry/cson |
+| `superjson` | SuperJSON | github.com/blitz-js/superjson |
+| `ntv` | Named and typed values | draft-thomy-json-ntv-03 |
+| `rjson` | Ruby's JSON | ruby-doc.org |
+| `json11` | dropbox/json11 | github.com/dropbox/json11 |
+| `jsonz` | json-z | npmjs.com/package/json-z |
+| `zson` | ZSON | github.com/postgrespro/zson |
+| `zjson` | Zed's ZJSON | github.com/brimdata/zed |
+| `sink` | Streaming NDJSON writer | ndjson-spec |
+| `source` | Streaming NDJSON reader | ndjson-spec |
 | `moonjson` | The scanner the dialects share, the writer, and `Refused` | — |
 
 Each text dialect has the same four faces — `loads`, `load`, `dumps`, `dump` —
 so learning one is learning all of them. Writing is always strict JSON, whatever
 the document was written in. A binary format has the two that take bytes: `load`
-and `dump`.
+and `dump`. Most text dialects share the one scanner; `hjson` and `cson` bring a
+lenient reader of their own, because their syntax is not a set of switches on
+JSON's. `sink` and `source` are the streaming pair: they hand a sequence of
+documents across one at a time, the same bytes `lines` reads and writes.
 
 `merge` is the one without them: a merge patch has no syntax of its own — the
 patch document is a JSON document, read with `@json.loads` — so the package

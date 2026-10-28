@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/sink"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct Sink {
+  buffer : StringBuilder
+  mut count : Int32
+}
+pub fn Sink::length(Self) -> Int32
+pub fn Sink::new() -> Self
+pub fn Sink::to_bytes(Self) -> Bytes
+pub fn Sink::to_string(Self) -> String
+pub fn Sink::write(Self, Json) -> Unit
+
+// Type aliases
+
+// Traits

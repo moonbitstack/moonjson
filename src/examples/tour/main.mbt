@@ -73,6 +73,19 @@ fn main raise {
   // One document, one sequence of bytes — what a signature is taken over.
   println("canonical     -> \{@jcs.dumps(plain)}")
 
+  // A lenient dialect reads what JSON would refuse; a compact binary one
+  // carries the same tree in fewer bytes. Both come back to the same tree.
+  let loose2 = @hjson.loads("{ host: localhost, port: 8080, tls: false }")
+  println("hjson == json -> \{loose2 == plain}")
+  let packed = @cbd.dump(plain)
+  println("cbd == json   -> \{@cbd.load(packed[:]) == plain}")
+
+  // A stream of records, written one at a time.
+  let sink = @sink.Sink::new()
+  sink.write(plain)
+  sink.write(plain)
+  println("sink records  -> \{sink.length()}")
+
   // A failure says where it happened.
   try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") |> ignore catch {
     e => {

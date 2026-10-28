@@ -1,0 +1,17 @@
+// CSON — CoffeeScript Object Notation: https://github.com/bevry/cson
+//
+// A line- and indentation-based dialect of JSON: no braces, no commas, keys and
+// values separated by colons and newlines, nesting shown by indentation, arrays
+// by `- ` bullets. The reader parses it into the shared `Json` tree; the writer
+// delegates to `@moonjson`, because CSON has no canonical text form and what it
+// does have does not survive a round trip, so the only faithful rendering is the
+// strict JSON `@moonjson` already knows how to write.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

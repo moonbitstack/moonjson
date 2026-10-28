@@ -1,0 +1,24 @@
+// Superjson — https://github.com/blitz-js/superjson
+//
+// A JSON superset that wraps a value in a `{"json": <value>, "meta": {...}}`
+// envelope carrying the type of each nested value — `Date`, `BigInt`, `Map`,
+// `Set`, and so on — so the receiver can rebuild the JavaScript objects the
+// JSON wire form cannot name.
+//
+// This package is faithful to that idea as far as the library's `Json` tree
+// allows, which is to say: it tolerates the envelope. A superjson payload is
+// plain JSON, so reading it parses the whole envelope — `json` and `meta`
+// alike — as an ordinary object (delegating to `@moonjson.loads`), and writing
+// it emits ordinary JSON (delegating to `@moonjson.dumps`). The typed values
+// survive only as the plain JSON they decode to, and the type table survives
+// only as the verbatim `meta` object. Full JavaScript-type reconstruction —
+// turning a string back into a `Date` or splitting a `Map` out of an array —
+// is out of scope for a `Json` tree that has no such types; see `superjson.mbt`.
+import {
+  "moonbitstack/moonjson",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitlang/core/encoding/utf8",
+} for "test"

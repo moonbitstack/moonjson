@@ -1,0 +1,10 @@
+// PostgreSQL jsonb binary encoding: https://www.postgresql.org/docs/current/datatype-json.html
+//
+// The layout follows PostgreSQL's on-disk jsonb shape (src/include/utils/jsonb.h):
+// a length/type header word, an element-count word, a JEntry per element, and a
+// data region. Numbers are kept as IEEE-754 bits so a tree round-trips exactly.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/encoding/hex",
+  "moonbitlang/core/encoding/utf8",
+}

@@ -1,0 +1,25 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/source"
+
+import {
+  "moonbitstack/moonjson",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct Source {
+  text : StringView
+  mut offset : Int32
+  mut count : Int32
+}
+pub fn Source::is_done(Self) -> Bool
+pub fn Source::length(Self) -> Int32
+pub fn Source::new(BytesView) -> Self raise @moonjson.Refused
+pub fn Source::read(Self) -> Json? raise @moonjson.Refused
+
+// Type aliases
+
+// Traits

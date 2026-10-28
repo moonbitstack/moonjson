@@ -1,0 +1,27 @@
+// Smile binary data format — https://github.com/FasterXML/smile-format-specification
+//
+// Smile is JSON's data model with one addition, a byte string, written as a
+// 4-byte `:)\n\0` header, then one value, then a `0x00` end marker. A Smile
+// blob reads into the same tree the rest of this family already understands,
+// and what the tree cannot hold outright is carried in the markers documented
+// on `load` — so a blob read here is written as a blob again, and the byte
+// strings of CBOR, MessagePack and BSON are the one `$bytes` in the tree.
+//
+// NOTE: this package writes the CORE value encoding only. It does not use the
+// shared-string dictionary, back-references (0x21/0x23/0x25), or the short-key
+// (0x40..0x7F) forms — every string, key and binary is a fresh, non-shared
+// value with a length prefix. The bytes it produces are therefore NOT
+// byte-for-byte what an external Smile library (Jackson, etc.) would write, and
+// they have not been validated against one; they are spec-shaped and round
+// trip internally. See `read.mbt` and `write.mbt` for the exact marker choices.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/double",
+  "moonbitlang/core/encoding/hex",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

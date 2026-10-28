@@ -1,0 +1,11 @@
+// Hjson — a user interface for JSON: https://hjson.github.io/
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitlang/core/encoding/utf8",
+} for "test"

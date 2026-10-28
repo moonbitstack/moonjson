@@ -1,0 +1,17 @@
+// ZJSON (Zed JSON) — https://github.com/brimdata/zed/blob/main/docs/formats/zjson.md
+//
+// ZJSON is the JSON encoding of the Zed data model: a stream of JSON objects,
+// each of the form {"type": <zed-type>, "value": <json-value>}. It is valid
+// JSON — the Zed type lives in a member alongside the value — so this package
+// delegates to the shared JSON reader/writer and keeps the `type`/`value` members
+// verbatim; see `zjson.mbt` for the full design note. (Do not confuse it with
+// ZSON, the PostgreSQL JSONB-compression extension, which lives in
+// `moonbitstack/moonjson/zson`.)
+import {
+  "moonbitstack/moonjson",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitlang/core/encoding/utf8",
+} for "test"

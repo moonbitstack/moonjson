@@ -1,0 +1,18 @@
+// KRSON — https://crates.io/crates/krson-core (Rust core), https://www.npmjs.com/package/krson-js (JS SDK)
+//
+// KRSON is a real, schema-first binary serialization format. The authoritative
+// SPEC.md the project references was not publicly retrievable at the time of
+// writing and the authors state the wire format "may still change between minor
+// versions", so this package implements the self-describing *schemaless* subset
+// (magic "KR", a string interning table, varint + zigzag integers, big-endian
+// float64) as a genuine encoder/decoder. See `krson.mbt` for the full design
+// note and fidelity warning.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/double",
+  "moonbitlang/core/encoding/utf8",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

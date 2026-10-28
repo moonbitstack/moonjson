@@ -1,0 +1,19 @@
+// bjson — "Binary JSON".
+//
+// No finalized, canonical, portable BJSON specification exists: `bjson.org`
+// publishes a draft (v0.5) marked subject to change, and at least two other
+// incompatible "Binary JSON" formats exist (the `bjson` npm library and QuickJS's
+// internal Binary JSON). This package implements a small, self-consistent
+// minimal reader/writer in the spirit of the bjson.org draft (little-endian,
+// one-byte type tags, length-prefixed containers) and documents it as such,
+// not as conformance to a stable standard. See `bjson.mbt` for the full note.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/double",
+  "moonbitlang/core/encoding/hex",
+  "moonbitlang/core/encoding/utf8",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

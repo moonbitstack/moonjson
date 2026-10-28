@@ -1,0 +1,29 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/jsonb/pg"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitstack/moonjson",
+}
+
+// Values
+pub fn dump(Json, policy? : Policy) -> Bytes raise @moonjson.Refused
+
+pub fn load(BytesView, policy? : Policy) -> Json raise @moonjson.Refused
+
+pub let policy : Policy
+
+// Errors
+
+// Types and methods
+pub(all) struct Policy {
+  depth : Int32
+} derive(Eq, @debug.Debug)
+pub fn Policy::equal(Self, Self) -> Bool
+pub fn Policy::new(depth? : Int32) -> Self
+pub fn Policy::not_equal(Self, Self) -> Bool
+pub fn Policy::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

@@ -1,0 +1,15 @@
+// JSON-NTV (Named and Typed Value) — https://datatracker.ietf.org/doc/html/draft-thomy-json-ntv-03
+//
+// An IETF Internet-Draft that adds an optional `name:type` tag to a JSON value
+// by wrapping it in an object whose single member carries the tag as its key
+// (e.g. `{"paris:point": [2.35, 48.85]}`). Because that wrapping is itself
+// valid JSON, this package does not keep a separate tree: it reads and writes
+// the value with the shared `Json` tree, leaving `name:type` keys exactly as
+// written. See `ntv.mbt` for the full design note.
+import {
+  "moonbitstack/moonjson",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

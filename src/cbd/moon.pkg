@@ -1,0 +1,11 @@
+// CBD — CompactBinaryData: https://github.com/makalin/CBD
+//
+// A compact binary encoding of the JSON data model: a 5-byte header, then each
+// value as a one-byte descriptor whose low 3 bits are the type and whose high 5
+// bits hold a short length, with a varint escape for longer ones. Numbers are
+// kept as IEEE-754 bits and a byte string as the reserved `{"$bytes": "…"}`.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/encoding/hex",
+  "moonbitlang/core/encoding/utf8",
+}

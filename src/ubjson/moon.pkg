@@ -1,0 +1,19 @@
+// Universal Binary JSON (UBJSON) — https://ubjson.org/
+//
+// UBJSON is JSON's data model exactly: null, true, false, numbers, strings,
+// arrays and objects, with no byte strings, no tags, no undefined and no
+// non-string map keys. A UBJSON document reads into the same tree the rest of
+// this family already understands, and what the tree cannot hold outright is
+// carried in the markers documented on `load` — written, where UBJSON allows,
+// as the closest plain thing.
+import {
+  "moonbitstack/moonjson",
+  "moonbitlang/core/double",
+  "moonbitlang/core/encoding/hex",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string",
+}
+
+import {
+  "moonbitstack/moonjson/json",
+} for "test"

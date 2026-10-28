@@ -34,6 +34,8 @@
 
   --radius: 14px;
   --max: 1060px;
+
+  color-scheme: light;
 }
 
 [data-theme="dark"] {
@@ -60,6 +62,8 @@
   --syn-literal: #f9a8d4;
   --syn-punct: #7d8595;
   --syn-attr: #67e8f9;
+
+  color-scheme: dark;
 }
 
 * {
@@ -1165,12 +1169,19 @@ select {
 }
 .controls select {
   font: inherit;
-  font-size: 0.86rem;
-  padding: 4px 8px;
-  border: 1px solid var(--border);
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   background: var(--surface);
   color: var(--text);
+  cursor: pointer;
+}
+.controls input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 .demo-grid {
   display: grid;
@@ -1204,17 +1215,23 @@ select {
 }
 
 .doc-input {
+  display: block;
   width: 100%;
-  min-height: 120px;
-  margin: 0 0 24px;
-  padding: 14px 16px;
+  min-height: 240px;
+  margin: 0 0 28px;
+  padding: 18px 20px;
   border: 1px solid var(--code-border);
   border-radius: var(--radius);
   background: var(--code-bg);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  line-height: 1.65;
+  font-size: 0.98rem;
+  line-height: 1.7;
   tab-size: 2;
   resize: vertical;
+}
+.doc-input:focus {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  outline-offset: 2px;
 }

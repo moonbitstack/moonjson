@@ -19,10 +19,10 @@ pub extend Floats with Debug::{to_repr}
 ///|
 /// How MessagePack is read and written.
 pub(all) struct Policy {
-  /// The reference implementation, Python's `msgpack`, writes every float as a
-  /// double unless it is told otherwise, so that is the default: a 32-bit float
-  /// that reads back the same is smaller but is not what the other side
-  /// expects to see.
+  /// MessagePack's reference implementation writes every float as a double
+  /// unless it is told otherwise, so that is the default: a 32-bit float that
+  /// reads back the same is smaller but is not what the other side expects to
+  /// see.
   floats : Floats
   /// How deep nesting may go before the document is refused.
   depth : Int32

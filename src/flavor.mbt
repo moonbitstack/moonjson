@@ -4,10 +4,10 @@
 ///|
 /// What a repeated member name means.
 ///
-/// Every mainstream implementation keeps the last one — JavaScript, Python, Go
-/// and serde all do — so that is the default. The other two are here because a
-/// document with two `"id"` members is usually a mistake, and a reader that
-/// wants to hear about it should not have to write its own parser.
+/// A reader that fills a map keeps the last one, because that is what a map
+/// does, so that is the default. The other two are here because a document with
+/// two `"id"` members is usually a mistake, and a reader that wants to hear
+/// about it should not have to write its own parser.
 pub(all) enum Duplicates {
   /// The last one wins. What everybody does.
   Last
@@ -54,17 +54,17 @@ pub(all) struct Flavor {
   /// How deep the nesting may go before the document is refused.
   ///
   /// Five hundred is past anything written for a reader and far short of what
-  /// exhausts a stack on any backend. The mainstream disagrees on the number —
-  /// Jackson refuses past 1000, serde_json past 128 — but not on having one,
-  /// because a document of a hundred thousand open brackets is a denial of
-  /// service rather than a document.
+  /// exhausts a stack on any backend. Readers disagree on the number — a
+  /// thousand in one, a hundred and twenty-eight in another — but not on
+  /// having one, because a document of a hundred thousand open brackets is a
+  /// denial of service rather than a document.
   depth : Int32
   /// Whether a lone half of a surrogate pair is a character.
   ///
-  /// Implementations disagree: JavaScript keeps it, Go replaces it, serde_json
-  /// refuses it, and JSONTestSuite files these cases as implementation-defined.
-  /// The default refuses, because a lone half cannot be written back out and
-  /// every value that could replace it is a guess about what the writer meant.
+  /// The case is implementation-defined: a reader may keep the half, replace it
+  /// with U+FFFD, or refuse the document. This one refuses, because a lone half
+  /// cannot be written back out and every value that could replace it is a
+  /// guess about what the writer meant.
   surrogates : Bool
   /// What a repeated member name means.
   duplicates : Duplicates

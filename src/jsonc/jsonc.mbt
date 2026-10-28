@@ -28,8 +28,8 @@ pub fn load(
 /// Write a tree as strict JSON, whatever dialect it was read from.
 ///
 /// `indent` of zero is the compact form. `ascii` escapes everything above
-/// U+007E, for a transport that is not eight-bit clean — what Python's
-/// `ensure_ascii` does, though unlike Python's it is off by default, because a
+/// U+007E, for a transport that is not eight-bit clean — what is sometimes
+/// called `ensure_ascii`, except that it is off by default here, because a
 /// UTF-8 body is the normal case now. `sort` writes members in order of name
 /// instead of the order they were read in, which is what a diff wants.
 pub fn dumps(

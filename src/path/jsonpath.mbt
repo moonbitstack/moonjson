@@ -363,7 +363,10 @@ fn value_of(operand : Operand, node : Json, root : Json) -> Json? {
       match name {
         "length" =>
           match single(args, node, root) {
-            Some(String(s)) => Some(Json::number(s.length().to_double()))
+            // A string's length is its number of characters, which is not its
+            // number of UTF-16 code units: `"😀"` is one character and two of
+            // them.
+            Some(String(s)) => Some(Json::number(characters(s).to_double()))
             Some(Array(items)) => Some(Json::number(items.length().to_double()))
             Some(Object(members)) =>
               Some(Json::number(members.length().to_double()))
@@ -393,6 +396,17 @@ fn value_of(operand : Operand, node : Json, root : Json) -> Json? {
         _ => None
       }
   }
+}
+
+///|
+/// How many characters a string holds. RFC 9535 §2.4.4 counts Unicode scalar
+/// values, and a code unit above U+FFFF is only half of one.
+fn characters(text : StringView) -> Int32 {
+  let mut count = 0
+  for _ in text {
+    count += 1
+  }
+  count
 }
 
 ///|

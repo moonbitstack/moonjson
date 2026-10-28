@@ -6,7 +6,7 @@
     <title>Docs — moonjson</title>
     <meta
       name="description"
-      content="How to read and write the JSON family with moonjson: the verbs, the dialects, the flavor record, the tree, and the failures."
+      content="The guide to moonjson, in the order it is learned: one document read and written, a document changed, the notations, a query, and the binary formats."
     />
     <link rel="stylesheet" href="assets/style.css" />
     <link
@@ -41,6 +41,7 @@
           <a href="index.html">Home</a>
           <a href="docs.html" aria-current="page">Docs</a>
           <a href="examples.html">Examples</a>
+          <a href="api.html">API</a>
         </nav>
         <div class="header-tools">
           <button class="icon-button" type="button" data-theme-toggle aria-label="Switch theme">
@@ -65,58 +66,83 @@
       <div class="docs-layout" style="padding-top: 56px; padding-bottom: 24px">
         <aside class="docs-toc" aria-label="Table of contents">
           <div class="title">On this page</div>
-          <a href="#surface">The surface</a>
-          <a href="#packages">Packages</a>
-          <a href="#reading">Reading</a>
+          <a href="#one-document">One document</a>
+          <a href="#changing">Changing it</a>
+          <a href="#notations">The notations</a>
+          <a href="#querying">Querying it</a>
+          <a href="#reading">How to read</a>
           <a href="#tree">The tree</a>
-          <a href="#changing">Changing a document</a>
           <a href="#failures">Failures</a>
+          <a href="#binary">Binary formats</a>
         </aside>
 
         <div class="docs-body">
-          <section id="surface">
+          <section id="one-document">
             <div class="section-head">
-              <div class="kicker">the surface</div>
-              <h2>One set of verbs</h2>
+              <div class="kicker">one</div>
+              <h2>One document, read and written</h2>
               <p>
-                One set of verbs across the family. The <code>s</code> is on the
-                form that takes or answers a string.
+                The four verbs the whole family shares. The <code>s</code> is on
+                the form that takes or answers a string.
               </p>
             </div>
-            <div class="table-card">
-              <table>
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th>text → tree</th>
-                    <th>bytes → tree</th>
-                    <th>tree → text</th>
-                    <th>tree → bytes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>one document</td>
-                    <td><code>loads</code></td>
-                    <td><code>load</code></td>
-                    <td><code>dumps</code></td>
-                    <td><code>dump</code></td>
-                  </tr>
-                  <tr>
-                    <td>a stream of them</td>
-                    <td><code>loads_all</code></td>
-                    <td><code>load_all</code></td>
-                    <td><code>dumps_all</code></td>
-                    <td><code>dump_all</code></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
             <div class="prose">
+              <div class="code-card">
+                <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+                <pre data-lang="moonbit">let config = @json.loads("{\"host\":\"localhost\",\"port\":8080,\"tls\":false}")
+@json.dumps(config)
+@json.dumps(config, indent=2)
+@json.dump(config)              // the same, as the bytes of a body
+@json.load(@json.dump(config)[:])</pre>
+              </div>
+              <div class="code-card">
+                <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+                <pre>{"host":"localhost","port":8080,"tls":false}
+{
+  "host": "localhost",
+  "port": 8080,
+  "tls": false
+}</pre>
+              </div>
+              <p>
+                A document is one value and nothing else: anything after it other
+                than whitespace is <code>Trailing</code>, not quietly ignored. A
+                parser that stops at the first value turns a truncated file into
+                a plausible one.
+              </p>
+              <div class="table-card">
+                <table>
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>text → tree</th>
+                      <th>bytes → tree</th>
+                      <th>tree → text</th>
+                      <th>tree → bytes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>one document</td>
+                      <td><code>loads</code></td>
+                      <td><code>load</code></td>
+                      <td><code>dumps</code></td>
+                      <td><code>dump</code></td>
+                    </tr>
+                    <tr>
+                      <td>a stream of them</td>
+                      <td><code>loads_all</code></td>
+                      <td><code>load_all</code></td>
+                      <td><code>dumps_all</code></td>
+                      <td><code>dump_all</code></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               <p>
                 The plural set exists <strong>exactly where the format defines a
-                stream</strong> — <code>lines</code> is a stream and has only
-                those; <code>json</code>, <code>jsonc</code> and
+                stream</strong>: <code>lines</code> is a stream and has only
+                those, while <code>json</code>, <code>jsonc</code> and
                 <code>json5</code> define one document and have only the
                 singular set.
               </p>
@@ -127,20 +153,121 @@
                 <code>@json.to_string(x)</code> beside <code>x.to_string()</code>
                 is a sentence that reads two ways.
               </p>
+              <p>
+                Writing is the strict grammar whatever the document was read as,
+                and its three settings are arguments because a call site is where
+                a diff or a transport is known:
+              </p>
+              <div class="table-card">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Setting</th>
+                      <th>Default</th>
+                      <th>What it does</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>indent</code></td>
+                      <td>0</td>
+                      <td>Zero is the compact form; two is over several lines.</td>
+                    </tr>
+                    <tr>
+                      <td><code>ascii</code></td>
+                      <td>off</td>
+                      <td>Escape everything above U+007E, for a transport that is not eight-bit clean.</td>
+                    </tr>
+                    <tr>
+                      <td><code>sort</code></td>
+                      <td>off</td>
+                      <td>Members in order of name instead of the order they were read in, which is what a diff wants.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </section>
 
-          <section id="packages">
+          <section id="changing">
             <div class="section-head">
-              <div class="kicker">the packages</div>
-              <h2>A package per way of writing it</h2>
+              <div class="kicker">two</div>
+              <h2>Changing it</h2>
               <p>
-                Each has the same four faces, so learning one is learning all of
-                them. Writing is always strict JSON, whatever the document was
-                written in.
+                Three ways, for three kinds of change. One place is named with a
+                pointer (RFC 6901); a set of changes that must all hold or none
+                is a patch (RFC 6902); and a change that looks like the document
+                itself is a merge patch (RFC 7396).
               </p>
             </div>
             <div class="prose">
+              <div class="code-card">
+                <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+                <pre data-lang="moonbit">// One field, and nothing else changes.
+let cfg = @pointer.set(config, "/port", Json::number(9090))
+@pointer.get(cfg, "/port")            // 9090
+@pointer.has(cfg, "/port")            // true
+
+// Six operations, applied in order — or, if one fails, not at all.
+let ops = @patch.loads(
+  "[{\"op\":\"replace\",\"path\":\"/port\",\"value\":9090},{\"op\":\"add\",\"path\":\"/tls\",\"value\":true}]"
+)
+@patch.apply(config, ops)
+
+// A patch that looks like the document: a member that is not there is added,
+// one that is there is replaced, and a null takes one away.
+@merge.merge(config, @json.loads("{\"port\":9090,\"tls\":null}"))</pre>
+              </div>
+              <div class="code-card">
+                <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+                <pre>{"host":"localhost","port":9090,"tls":true}
+{"host":"localhost","port":9090}</pre>
+              </div>
+              <p>
+                A patch is read into <code>Operation</code>s rather than left as
+                a tree of objects, so a misspelled <code>op</code> is an error
+                rather than a document that quietly does nothing. A patch that
+                fails partway applies nothing — the document it was given is
+                never changed.
+              </p>
+              <div class="note">
+                <span class="label">the pointers inside a patch</span>
+                They are <code>@pointer</code>'s. The syntax, the escapes and
+                the refusals come from there, said about the member that named
+                them, so one implementation of RFC 6901 serves both packages.
+              </div>
+            </div>
+          </section>
+
+          <section id="notations">
+            <div class="section-head">
+              <div class="kicker">three</div>
+              <h2>The notations</h2>
+              <p>
+                One tree, several ways of writing it. Each dialect is a package
+                with the same four faces, so learning one is learning all of
+                them, and they read the same document to the same tree.
+              </p>
+            </div>
+            <div class="prose">
+              <div class="code-card">
+                <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+                <pre data-lang="moonbit">let plain = @json.loads("{\"host\":\"localhost\",\"port\":8080,\"tls\":false}")
+
+let source =
+  #|{
+  #|  "host": "localhost",  // where to bind
+  #|  "port": 8080,
+  #|  "tls": false,         // a certificate is not set up yet
+  #|}
+@jsonc.loads(source[:]) == plain       // true
+@json5.loads("{host:'localhost',port:8080,tls:false,}") == plain   // true</pre>
+              </div>
+              <div class="code-card">
+                <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+                <pre>jsonc == json -> true
+json5 == json -> true</pre>
+              </div>
               <h3 id="json">json</h3>
               <p>
                 JSON, exactly — RFC 8259 and ECMA-404. The grammar and nothing
@@ -162,6 +289,14 @@
                 those go back out as <code>null</code>, as every JavaScript
                 implementation writes them.
               </p>
+              <div class="code-card">
+                <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+                <pre data-lang="moonbit">@json5.dumps(@json5.loads("[Infinity,NaN,0xFF]"))</pre>
+              </div>
+              <div class="code-card">
+                <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+                <pre>[null,null,255]</pre>
+              </div>
               <h3 id="lines">lines</h3>
               <p>
                 JSON Lines, also called NDJSON: one document to a line,
@@ -170,60 +305,14 @@
                 start anywhere and a writer can append without rewriting. Every
                 line it writes ends in a feed, including the last.
               </p>
-              <h3 id="pointer">pointer</h3>
-              <p>
-                JSON Pointer, RFC 6901: a string that names one place in a
-                document. <code>~1</code> stands for a slash and
-                <code>~0</code> for a tilde, undone in that order — the other
-                way round would turn <code>~01</code> into a slash.
-                <code>get</code>, <code>has</code>, <code>set</code>,
-                <code>remove</code>, <code>tokens</code>, <code>escape</code>
-                and <code>join</code>.
-              </p>
-              <h3 id="patch">patch</h3>
-              <p>
-                JSON Patch, RFC 6902: a patch document is an array of operation
-                objects — <code>add</code>, <code>remove</code>,
-                <code>replace</code>, <code>move</code>, <code>copy</code>,
-                <code>test</code> — applied in order, or, if one fails, not at
-                all. It is read into <code>Operation</code>s rather than left
-                as a tree of objects, so a misspelled <code>op</code> is an
-                error rather than a document that quietly does nothing.
-              </p>
-              <h3 id="merge">merge</h3>
-              <p>
-                JSON Merge Patch, RFC 7396: a patch that looks like the document
-                it changes. A member that is not there is added, one that is
-                there is replaced, and a member whose value is
-                <code>null</code> is taken away. A merge patch has no syntax of
-                its own — the patch document is a JSON document, read with
-                <code>@json.loads</code> — so this package holds the evaluation
-                and nothing else, and it never fails.
-              </p>
-              <h3 id="path">path</h3>
-              <p>
-                JSONPath, RFC 9535: a query language over the tree. Name, index,
-                wildcard, slice and filter selectors; child and descendant
-                segments; the five functions <code>length</code>,
-                <code>count</code>, <code>match</code>, <code>search</code> and
-                <code>value</code>. A query is compiled once and then run
-                against any number of documents, because a filter is evaluated
-                once per node and a string parsed per node would be a parser in
-                the hot loop.
-              </p>
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">let cheap = @path.select(doc, "$..book[?@.price &lt; 10].title")
-let query = @path.compile("$.store.*")       // once
-let found = query.select(doc)                 // as often as you like</pre>
+                <pre data-lang="moonbit">@lines.loads_all("{\"n\":1}\n{\"n\":2}\n{\"n\":3}\n").length()</pre>
               </div>
-              <p>
-                <code>match</code> and <code>search</code> take I-Regexp,
-                RFC 9485's restricted ECMA-262 — no backreferences, no
-                lookaround, no flags. It is a small backtracking matcher on code
-                points, in the package, because the alternative was the only
-                dependency in the module that is not core.
-              </p>
+              <div class="code-card">
+                <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+                <pre>3</pre>
+              </div>
               <h3 id="jcs">jcs</h3>
               <p>
                 JSON Canonicalisation Scheme, RFC 8785: one document, one
@@ -231,61 +320,54 @@ let found = query.select(doc)                 // as often as you like</pre>
                 sign the same bytes. Members sort by UTF-16 code unit — not by
                 code point, which differs above U+FFFF — numbers are written the
                 way ECMAScript writes them, and nothing above U+001F is escaped.
-                A number that is not finite has no canonical form and is
-                refused rather than replaced with <code>null</code>.
+                A number that is not finite has no canonical form and is refused
+                rather than replaced with <code>null</code>.
               </p>
-              <h3 id="binary">cbor, msgpack, bson</h3>
+            </div>
+          </section>
+
+          <section id="querying">
+            <div class="section-head">
+              <div class="kicker">four</div>
+              <h2>Querying it</h2>
               <p>
-                Three binary encodings, each with its own package and its own
-                specification, all reading and writing the same tree. CBOR is
-                RFC 8949 and has tags; MessagePack has extension types; BSON has
-                ObjectId, dates, decimal128 and a dozen more. Writing fills in
-                the shortest form the format defines; reading keeps everything.
+                A pointer names one place; JSONPath asks for a set of them, with
+                filters. RFC 9535's grammar, and its five functions
+                <code>length</code>, <code>count</code>, <code>match</code>,
+                <code>search</code> and <code>value</code>.
               </p>
+            </div>
+            <div class="prose">
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">let body = @cbor.dump(doc)         // the same tree as bytes
-let again = @cbor.load(body)       // and back, unchanged
-@json.dumps(@msgpack.load(@msgpack.dump(doc)))
-@bson.dump(@json.loads("{\"$oid\":\"507f1f77bcf86cd799439011\"}"))</pre>
+                <pre data-lang="moonbit">let shelf = @json.loads(
+  "{\"store\":{\"book\":[{\"title\":\"A\",\"price\":8.95},{\"title\":\"B\",\"price\":12.99},{\"title\":\"C\",\"price\":8.99}]}}"
+)
+@path.select(shelf, "$..book[?@.price&lt;10].title")
+
+// A query is compiled once and run against any number of documents, because a
+// filter is evaluated once per node.
+let query = @path.compile("$.store.book[*].title")
+query.select(shelf)</pre>
+              </div>
+              <div class="code-card">
+                <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+                <pre>["A","C"]</pre>
               </div>
               <p>
-                What JSON has no syntax for travels as a marker, so a value that
-                came from BSON survives a trip through JSON:
-              </p>
-              <table>
-                <thead><tr><th>Value</th><th>Marker</th></tr></thead>
-                <tbody>
-                  <tr><td>byte string</td><td><code>{"$bytes": "0102"}</code></td></tr>
-                  <tr><td>CBOR tag</td><td><code>{"$tag": 1, "value": …}</code></td></tr>
-                  <tr><td>MessagePack extension</td><td><code>{"$ext": 1, "data": "0102"}</code></td></tr>
-                  <tr><td><code>undefined</code></td><td><code>{"$undefined": true}</code></td></tr>
-                  <tr><td>non-string map key</td><td><code>{"$map": [[1, 2]]}</code></td></tr>
-                  <tr><td>ObjectId</td><td><code>{"$oid": "507f…"}</code></td></tr>
-                  <tr><td>UTC datetime</td><td><code>{"$date": 1356350400000}</code></td></tr>
-                </tbody>
-              </table>
-              <p>
-                A marker name is reserved: an object whose only member is
-                <code>$oid</code> is an ObjectId. That is the same bargain
-                MongoDB's Extended JSON makes, and for the same reason — a tree
-                with one object type needs one reserved name.
-              </p>
-              <h3 id="flavor">moonjson</h3>
-              <p>
-                The root package: the scanner the dialects share, the writer
-                that puts a tree back as strict JSON, the <code>Flavor</code>
-                record, and <code>Refused</code> — one error type for the whole
-                family, so there is one thing to catch. Its variants carry an
-                <code>At</code> when the failure is in text, and a byte offset or
-                a path when it is not.
+                <code>match</code> and <code>search</code> take I-Regexp,
+                RFC 9485's restricted form — no backreferences, no lookaround,
+                no flags, and <code>\p{…}</code> for the Unicode general
+                categories. It is a small backtracking matcher over characters,
+                in the package, and a pattern that is not one is refused before
+                it runs.
               </p>
             </div>
           </section>
 
           <section id="reading">
             <div class="section-head">
-              <div class="kicker">reading</div>
+              <div class="kicker">five</div>
               <h2>How to read is a value</h2>
               <p>
                 <code>Flavor</code> carries both what syntax a dialect accepts
@@ -338,16 +420,6 @@ let again = @cbor.load(body)       // and back, unchanged
                       <td>skipped</td>
                       <td>RFC 8259 §8.1 forbids writing one and says nothing about reading one; refusing would reject half of what Windows tooling produces.</td>
                     </tr>
-                    <tr>
-                      <td><code>ascii</code></td>
-                      <td>off</td>
-                      <td>A UTF-8 body is the normal case now.</td>
-                    </tr>
-                    <tr>
-                      <td><code>sort</code></td>
-                      <td>off</td>
-                      <td>The order a document was written in is information; a diff is the reason to discard it, and a diff can ask.</td>
-                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -356,7 +428,7 @@ let again = @cbor.load(body)       // and back, unchanged
 
           <section id="tree">
             <div class="section-head">
-              <div class="kicker">the tree</div>
+              <div class="kicker">six</div>
               <h2>Core's <code>Json</code>, not one of our own</h2>
               <p>
                 Anything that already speaks <code>@json.Json</code> speaks
@@ -369,81 +441,122 @@ let again = @cbor.load(body)       // and back, unchanged
                 and written again comes back unchanged — including a
                 twenty-digit integer and <code>1e400</code>, which a double
                 cannot hold and which a parser that goes through one silently
-                rewrites. A number JSON has no syntax for, which JSON5 can
-                produce, is written as <code>null</code>, as every JavaScript
-                implementation writes it.
+                rewrites.
               </p>
-              <p>
-                Members keep their order.
-              </p>
-            </div>
-          </section>
-
-          <section id="changing">
-            <div class="section-head">
-              <div class="kicker">changing</div>
-              <h2>Changing a document</h2>
-              <p>
-                Three ways, for three kinds of change. One place is named with a
-                pointer (RFC 6901); a set of changes that must all hold or none
-                is a patch (RFC 6902); and a change that looks like the
-                document itself is a merge patch (RFC 7396).
-              </p>
-            </div>
-            <div class="prose">
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">// One field, and nothing else changes.
-let cfg = @pointer.set(cfg, "/spec/replicas", Json::number(5))
-
-// Six operations, applied in order — or, if one fails, not at all.
-let ops = @patch.loads(
-  "[{\"op\":\"test\",\"path\":\"/spec/replicas\",\"value\":1},{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":5}]"
-)
-@patch.apply(cfg, ops)
-
-// A patch that looks like the document: a member that is not there is added,
-// one that is there is replaced, and a null takes one away.
-@merge.merge(cfg, @json.loads("{\"spec\":{\"replicas\":5,\"image\":null}}"))</pre>
+                <pre data-lang="moonbit">let wide = "[1e400,12345678901234567890,0.1]"
+@json.dumps(@json.loads(wide)) == wide      // true</pre>
               </div>
-              <div class="note">
-                <span class="label">the pointers inside a patch</span>
-                They are <code>@pointer</code>'s. The syntax, the escapes and
-                the refusals come from there, said about the member that named
-                them, so one implementation of RFC 6901 serves both packages.
-              </div>
+              <p>
+                A number JSON has no syntax for, which JSON5 can produce, is
+                written as <code>null</code>, as every JavaScript
+                implementation writes it. Members keep their order.
+              </p>
             </div>
           </section>
 
           <section id="failures">
             <div class="section-head">
-              <div class="kicker">failures</div>
+              <div class="kicker">seven</div>
               <h2>What went wrong, and where</h2>
               <p>
-                Reading raises <code>Refused</code>, which says what went
-                wrong and where — offset, line and column. Nesting is refused
-                past 500 levels rather than taken to the stack.
+                Reading raises <code>Refused</code>, which says what went wrong
+                and where — offset, line and column. One type for the whole
+                family, so there is one thing to catch.
               </p>
             </div>
             <div class="prose">
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">try @json.loads(source) catch {
-  e => println("line \{e.at().line}, column \{e.at().column}")
+                <pre data-lang="moonbit">try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") catch {
+  e => match e.at() {
+    Some(spot) => println("line \{spot.line}, column \{spot.column}")
+    None => println(e)          // a pointer or a patch, which has a path instead
+  }
 }</pre>
               </div>
+              <div class="code-card">
+                <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+                <pre>line 3, column 8</pre>
+              </div>
               <p>
-                A patch has its own failure type, <code>@patch.Failure</code>:
-                the scanner's, wrapped as <code>Unreadable</code>; a document
-                that is not a patch; a pointer that is not one; a target that is
-                not there; a test that did not hold; a move into a child; and
-                the root, which has no parent to take it from. A patch that
-                fails partway applies nothing — the document it was given is
-                never changed.
+                The variants carry the scanner's refusals, the pointer's
+                <code>Missing</code> and <code>BadIndex</code>, the patch's
+                <code>TestFailed</code> and <code>IntoChild</code>, and
+                <code>Unwritable</code> for a value a writer cannot put on
+                paper. A failure in a binary format answers <code>None</code>
+                from <code>at()</code> and carries a byte offset in its variant
+                instead, because a line number invented for a byte string would
+                be worse than none.
+              </p>
+              <p>
+                Nesting is refused past 500 levels rather than taken to the
+                stack: a document of a hundred thousand open brackets is a
+                denial of service, not a document. A lone half of a surrogate
+                pair is refused, because it is not a character and any value put
+                in its place would be a guess.
               </p>
             </div>
           </section>
 
+          <section id="binary">
+            <div class="section-head">
+              <div class="kicker">eight</div>
+              <h2>The binary formats</h2>
+              <p>
+                CBOR, MessagePack and BSON: three encodings of the same tree,
+                each with its own package and its own specification, each with
+                the two verbs that take bytes.
+              </p>
+            </div>
+            <div class="prose">
+              <div class="code-card">
+                <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+                <pre data-lang="moonbit">let body = @cbor.dump(config)          // the same tree, as bytes
+@hex.encode(body[:])
+@cbor.load(body[:]) == config          // true
+
+@json.dumps(@msgpack.load(@msgpack.dump(config)))
+@bson.dump(@json.loads("{\"$oid\":\"507f1f77bcf86cd799439011\"}"))</pre>
+              </div>
+              <div class="code-card">
+                <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
+                <pre>a363746c73f464686f7374696c6f63616c686f737464706f7274191f90</pre>
+              </div>
+              <p>
+                Writing fills in the shortest form the format defines; reading
+                keeps everything. What JSON has no syntax for travels as a
+                marker, so a value that came from one of them survives a trip
+                through JSON:
+              </p>
+              <table>
+                <thead><tr><th>Value</th><th>Marker</th></tr></thead>
+                <tbody>
+                  <tr><td>byte string</td><td><code>{"$bytes": "0102"}</code></td></tr>
+                  <tr><td>CBOR tag</td><td><code>{"$tag": 1, "value": …}</code></td></tr>
+                  <tr><td>MessagePack extension</td><td><code>{"$ext": 1, "data": "0102"}</code></td></tr>
+                  <tr><td><code>undefined</code></td><td><code>{"$undefined": true}</code></td></tr>
+                  <tr><td>non-string map key</td><td><code>{"$map": [[1, 2]]}</code></td></tr>
+                  <tr><td>ObjectId</td><td><code>{"$oid": "507f…"}</code></td></tr>
+                  <tr><td>UTC datetime</td><td><code>{"$date": 1356350400000}</code></td></tr>
+                </tbody>
+              </table>
+              <p>
+                A marker name is reserved: an object whose only member is
+                <code>$oid</code> is an ObjectId. That is the same bargain
+                MongoDB's Extended JSON makes, and for the same reason — a tree
+                with one object type needs one reserved name. The root package
+                holds the scanner every dialect shares, the writer, the
+                <code>Flavor</code> record and <code>Refused</code>.
+              </p>
+              <div class="note">
+                <span class="label">everything public</span>
+                The <a href="api.html">API reference</a> has one section per
+                package, each item with the sentence its source wrote about it.
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </main>
@@ -454,6 +567,7 @@ let ops = @patch.loads(
         <div class="links">
           <a href="docs.html">Docs</a>
           <a href="examples.html">Examples</a>
+          <a href="api.html">API</a>
           <a href="https://github.com/moonbitstack/moonjson">GitHub</a>
         </div>
       </div>

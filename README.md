@@ -2,6 +2,11 @@
 
 The JSON family for MoonBit: one tree, several ways of writing it.
 
+[Home](https://moonbitstack.github.io/moonjson/) ·
+[Guide](https://moonbitstack.github.io/moonjson/docs.html) ·
+[API](https://moonbitstack.github.io/moonjson/api.html) ·
+[Mooncakes](https://mooncakes.io/docs/moonbitstack/moonjson)
+
 ```moonbit
 let config = @json.loads("{\"host\":\"localhost\",\"port\":8080}")
 @json.dumps(config)              // {"host":"localhost","port":8080}
@@ -25,11 +30,10 @@ One set of verbs across the family:
 | one document | `loads` | `load` | `dumps` | `dump` |
 | a stream of them | `loads_all` | `load_all` | `dumps_all` | `dump_all` |
 
-The `s` is on the form that takes or answers a string. The
-plural set exists **exactly where the format defines a stream** — `lines` is a
-stream and has only those; `json`, `jsonc` and `json5` define one document and
-have only the singular set. `moonyaml` follows the same rule and has both,
-because `---` makes both meaningful.
+The `s` is on the form that takes or answers a string. The plural set exists
+**exactly where the format defines a stream** — `lines` is a stream and has only
+those; `json`, `jsonc` and `json5` define one document and have only the
+singular set.
 
 Not `from_str` and `to_string`: `to_string` already means `Show::to_string` in
 MoonBit, and `@json.to_string(x)` beside `x.to_string()` is a sentence that
@@ -180,6 +184,20 @@ let ops = @patch.loads(
 A patch is read into `Operation`s rather than left as a tree of objects, so a
 misspelled `op` is an error rather than a document that quietly does nothing,
 and the pointers inside it are the same ones `@pointer` reads.
+
+## Querying a document
+
+A pointer names one place; `path` asks for a set of them, with filters, and
+takes the five functions RFC 9535 defines:
+
+```moonbit
+let cheap = @path.select(doc, "$..book[?@.price < 10].title")
+let query = @path.compile("$.store.*")       // once
+let found = query.select(doc)                // as often as you like
+```
+
+`match` and `search` take I-Regexp (RFC 9485), including `\p{…}` for the Unicode
+general categories; a pattern that is not one is refused before it runs.
 
 ## Failures
 

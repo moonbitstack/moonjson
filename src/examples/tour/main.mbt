@@ -86,6 +86,18 @@ fn main raise {
   sink.write(plain)
   println("sink records  -> \{sink.length()}")
 
+  // The same stream read back, one at a time.
+  let src = @source.Source::new(sink.to_bytes()[:])
+  match src.read() {
+    Some(one) => println("source first  -> \{@json.dumps(one)}")
+    None => println("source first  -> none")
+  }
+
+  // A formatter rather than a dialect: four spaces a level, names sorted.
+  println(
+    "pretty        -> \{@pretty.format(plain, style=@pretty.Format::new(indent=4, sort=true))}",
+  )
+
   // A failure says where it happened.
   try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") |> ignore catch {
     e => {

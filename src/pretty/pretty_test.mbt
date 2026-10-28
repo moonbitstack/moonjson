@@ -57,6 +57,16 @@ test "reformat bytes" {
 }
 
 ///|
+/// Sorting orders three members, not only two.
+test "sort three members" {
+  let text = @pretty.format(
+    @json.loads("{\"tls\":1,\"host\":2,\"port\":3}"),
+    style=@pretty.Format::new(indent=0, sort=true),
+  )
+  assert_eq(text, "{\"host\":2,\"port\":3,\"tls\":1}")
+}
+
+///|
 /// A document a formatter rewrote still parses to the same tree.
 test "reformat preserves the tree" {
   let tree = @json.loads("{\"n\":[1,2,3],\"ok\":true}")

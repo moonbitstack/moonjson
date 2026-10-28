@@ -35,6 +35,9 @@ pub fn loads(
   text : StringView,
   flavor~ : @moonjson.Flavor = @moonjson.relaxed,
 ) -> Json raise @moonjson.Refused {
+  if starts_with_brace(text) {
+    return @moonjson.loads(text, @moonjson.strict)
+  }
   let lines = to_lines(text.to_owned())
   let parser : CsonParser = { lines, flavor, }
   if lines.length() == 0 {
@@ -42,6 +45,24 @@ pub fn loads(
   }
   let (value, _) = parser.parse_block(0, -1)
   value
+}
+
+///|
+/// Whether the document opens with `{` or `[`, which no CSON document does — a
+/// CSON document is bare `key: value` lines. Such a document is JSON, so it is
+/// read as JSON, which is what makes `dumps` (which writes strict JSON) read
+/// back here.
+fn starts_with_brace(text : StringView) -> Bool {
+  let mut i : Int32 = 0
+  while i < text.length() {
+    let c = text.at(i).to_int()
+    if c == 0x20 || c == 0x09 || c == 0x0A || c == 0x0D {
+      i += 1
+    } else {
+      return c == 0x7B || c == 0x5B
+    }
+  }
+  false
 }
 
 ///|

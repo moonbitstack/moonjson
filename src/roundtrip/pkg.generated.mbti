@@ -1,0 +1,13 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonjson/roundtrip"
+
+// Values
+pub fn sample() -> Json
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

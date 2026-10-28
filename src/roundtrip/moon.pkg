@@ -1,0 +1,31 @@
+// Cross-format round trip — one tree through every notation, which is the
+// promise the whole family makes: a value read from one and written to another
+// is unchanged.
+import {
+  "moonbitstack/moonjson/json",
+  "moonbitstack/moonjson/jsonc",
+  "moonbitstack/moonjson/json5",
+  "moonbitstack/moonjson/hjson",
+  "moonbitstack/moonjson/cson",
+  "moonbitstack/moonjson/superjson",
+  "moonbitstack/moonjson/ntv",
+  "moonbitstack/moonjson/rjson",
+  "moonbitstack/moonjson/json11",
+  "moonbitstack/moonjson/jsonz",
+  "moonbitstack/moonjson/zson",
+  "moonbitstack/moonjson/zjson",
+  "moonbitstack/moonjson/cbor",
+  "moonbitstack/moonjson/msgpack",
+  "moonbitstack/moonjson/bson",
+  "moonbitstack/moonjson/ubjson",
+  "moonbitstack/moonjson/smile",
+  "moonbitstack/moonjson/bjson",
+  "moonbitstack/moonjson/krson",
+  "moonbitstack/moonjson/cbd",
+  "moonbitstack/moonjson/jsonb/sqlite",
+  "moonbitstack/moonjson/jsonb/pg",
+  "moonbitstack/moonjson/sink",
+  "moonbitstack/moonjson/source",
+  "moonbitstack/moonjson/pretty",
+  "moonbitlang/core/encoding/hex",
+} for "test"

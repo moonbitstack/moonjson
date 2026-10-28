@@ -15,5 +15,7 @@ import {
   "moonbitstack/moonjson/hjson",
   "moonbitstack/moonjson/cbd",
   "moonbitstack/moonjson/sink",
+  "moonbitstack/moonjson/source",
+  "moonbitstack/moonjson/pretty",
   "moonbitlang/core/encoding/hex",
 }

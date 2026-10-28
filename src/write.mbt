@@ -35,6 +35,24 @@ pub fn dump(
 }
 
 ///|
+/// Bytewise lexicographic order of member names, which is what `sort` asks for
+/// and the order the reader meets them in.
+fn compare_names(a : String, b : String) -> Int32 {
+  let ba = @utf8.encode(a[:])
+  let bb = @utf8.encode(b[:])
+  let mut i = 0
+  while i < ba.length() && i < bb.length() {
+    let x = ba.at(i).to_int()
+    let y = bb.at(i).to_int()
+    if x != y {
+      return x - y
+    }
+    i += 1
+  }
+  ba.length() - bb.length()
+}
+
+///|
 fn put(
   out : StringBuilder,
   value : Json,
@@ -85,7 +103,7 @@ fn put(
         names.push(name)
       }
       if sort {
-        names.sort()
+        names.sort_by(compare_names)
       }
       let mut first = true
       for name in names {

@@ -6,7 +6,7 @@
     <title>Examples — moonjson</title>
     <meta
       name="description"
-      content="Worked examples of the moonjson family: reading three dialects, writing back, JSON Lines, JSON Pointer, JSON Patch and JSON Merge Patch — each with the output it really prints."
+      content="Worked examples of the moonjson family: reading JSON, JSON5, Hjson and CSON, writing back, the formatter, JSON Lines and a stream, JSON Pointer, Patch and Merge Patch, a compact binary and the cross-format round trip — each with the output it really prints."
     />
     <link rel="stylesheet" href="assets/style.css" />
     <link
@@ -261,6 +261,116 @@ println(@json.dumps(@merge.merge(spec, @json.loads(patch_text))))</pre>
           </div>
           <div class="output-label">output</div>
           <pre class="out">line 3, column 8</pre>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="head"><span class="n">09</span><h3>Hjson and CSON: syntax a person types</h3></div>
+        <div class="body">
+          <p>
+            Hjson drops the braces, the quotes around names and the commas; CSON
+            drops the braces and uses indentation. Both read to the same tree as
+            JSON, so what a person typed and what a machine wrote compare equal.
+          </p>
+          <div class="code-card">
+            <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+            <pre data-lang="moonbit">let from_hjson = @hjson.loads("{ a: 1, b: [2, 3] }")
+let from_cson = @cson.loads("a: 1\nb:\n  - 2\n  - 3\n")
+println(@json.dumps(from_hjson, sort=true))
+println(@json.dumps(from_cson, sort=true))</pre>
+          </div>
+          <div class="output-label">output</div>
+          <pre class="out">{"a":1,"b":[2,3]}
+{"a":1,"b":[2,3]}</pre>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="head"><span class="n">10</span><h3>A formatter, not a dialect</h3></div>
+        <div class="body">
+          <p>
+            <code>pretty</code> lays a tree out with the knobs a formatter wants —
+            spaces or tabs a level, LF or CRLF, names sorted — and
+            <code>reformat</code> reads a document and writes it back, the way
+            <code>python -m json.tool</code> does.
+          </p>
+          <div class="code-card">
+            <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+            <pre data-lang="moonbit">let cfg = @json.loads("{\"tls\":false,\"host\":\"localhost\",\"port\":8080}")
+println(@pretty.format(cfg, style=@pretty.Format::new(indent=4, sort=true)))</pre>
+          </div>
+          <div class="output-label">output</div>
+          <pre class="out">{
+    "host": "localhost",
+    "port": 8080,
+    "tls": false
+}</pre>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="head"><span class="n">11</span><h3>A compact binary: CBD</h3></div>
+        <div class="body">
+          <p>
+            CBD packs a tree into a five-byte header, a dictionary of its keys and
+            a type byte per value. The dictionary is what makes a document of
+            repeated names small, and the encoder reproduces the specification's
+            own example byte for byte.
+          </p>
+          <div class="code-card">
+            <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+            <pre data-lang="moonbit">let body = @cbd.dump(@json.loads("{\"name\":\"John\",\"age\":30}"))
+println(@hex.encode(body[:]))
+println(@cbd.load(body[:]) == @json.loads("{\"name\":\"John\",\"age\":30}"))</pre>
+          </div>
+          <div class="output-label">output</div>
+          <pre class="out">cbd1010002046e616d6503616765a1020160044a6f686e02401e
+true</pre>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="head"><span class="n">12</span><h3>A stream, written and read one at a time</h3></div>
+        <div class="body">
+          <p>
+            A <code>sink</code> writes a sequence of documents one to a line; a
+            <code>source</code> reads them back one at a time, without parsing the
+            whole stream first.
+          </p>
+          <div class="code-card">
+            <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+            <pre data-lang="moonbit">let sink = @sink.Sink::new()
+sink.write(@json.loads("{\"n\":1}"))
+sink.write(@json.loads("{\"n\":2}"))
+println(sink.length())
+let src = @source.Source::new(sink.to_bytes()[:])
+println(@json.dumps(src.read().unwrap()))</pre>
+          </div>
+          <div class="output-label">output</div>
+          <pre class="out">2
+{"n":1}</pre>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="head"><span class="n">13</span><h3>One tree, any two notations</h3></div>
+        <div class="body">
+          <p>
+            The promise the family makes: a value read from one notation and
+            written to another is unchanged. JSON in, CBOR out, SQLite jsonb on,
+            PostgreSQL jsonb back — the tree that comes out is the tree that went
+            in.
+          </p>
+          <div class="code-card">
+            <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+            <pre data-lang="moonbit">let t = @json.loads("{\"a\":1,\"b\":[true,null]}")
+let cbor = @cbor.dump(t)
+let sqlite = @sqlite.dump(@cbor.load(cbor[:]))
+let pg = @pg.dump(@sqlite.load(sqlite[:]))
+println(@pg.load(pg[:]) == t)</pre>
+          </div>
+          <div class="output-label">output</div>
+          <pre class="out">true</pre>
         </div>
       </div>
     </main>

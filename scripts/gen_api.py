@@ -491,8 +491,9 @@ TEMPLATE = """<!DOCTYPE html>
         <nav class="site-nav" aria-label="Main">
           <a href="index.html">Home</a>
           <a href="docs.html">Docs</a>
-          <a href="examples.html">Examples</a>
           <a href="api.html" aria-current="page">API</a>
+          <a href="examples.html">Examples</a>
+          <a href="showcase.html">Showcase</a>
         </nav>
         <div class="header-tools">
           <button class="icon-button" type="button" data-theme-toggle aria-label="Switch theme">

@@ -181,7 +181,7 @@ def parse_docs(directory):
             if line.startswith("///"):
                 block.append(line)
                 continue
-            if not line:
+            if not line or line.startswith("#"):
                 continue
             if owner is not None:
                 # Inside a struct or enum: the members are the declarations.

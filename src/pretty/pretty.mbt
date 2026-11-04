@@ -18,6 +18,7 @@
 ///
 /// The defaults are the ones a formatter is usually asked for — two spaces a
 /// level, LF line endings — and every field can be changed independently.
+#derive(Eq, Debug)
 pub(all) struct Format {
   /// Spaces per level. Zero writes the whole document on one line.
   indent : Int32
@@ -29,7 +30,7 @@ pub(all) struct Format {
   sort : Bool
   /// Escape everything above U+007F so the output is plain ASCII.
   ascii : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Format with Eq::{equal, not_equal}

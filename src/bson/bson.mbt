@@ -3,11 +3,12 @@
 
 ///|
 /// How BSON is read and written.
+#derive(Eq, Debug)
 pub(all) struct Policy {
   /// How deep a document may nest. BSON documents nest inside documents, and a
   /// chain of them is as good a way to exhaust a stack as a chain of brackets.
   depth : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Policy with Eq::{equal, not_equal}

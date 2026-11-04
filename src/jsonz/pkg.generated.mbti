@@ -2,17 +2,18 @@
 package "moonbitstack/moonjson/jsonz"
 
 import {
+  "moonbitlang/core/json",
   "moonbitstack/moonjson",
 }
 
 // Values
-pub fn dump(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> Bytes
+pub fn dump(@json.Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> Bytes
 
-pub fn dumps(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> String
+pub fn dumps(@json.Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> String
 
-pub fn load(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> Json raise @moonjson.Refused
+pub fn load(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> @json.Json raise @moonjson.Refused
 
-pub fn loads(StringView, flavor? : @moonjson.Flavor) -> Json raise @moonjson.Refused
+pub fn loads(StringView, flavor? : @moonjson.Flavor) -> @json.Json raise @moonjson.Refused
 
 // Errors
 

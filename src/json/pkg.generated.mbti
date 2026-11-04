@@ -6,13 +6,13 @@ import {
 }
 
 // Values
-pub fn dump(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> Bytes
+pub fn dump(@moonbitlang/core/json.Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> Bytes
 
-pub fn dumps(Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> String
+pub fn dumps(@moonbitlang/core/json.Json, indent? : Int32, ascii? : Bool, sort? : Bool) -> String
 
-pub fn load(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> Json raise @moonjson.Refused
+pub fn load(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> @moonbitlang/core/json.Json raise @moonjson.Refused
 
-pub fn loads(StringView, flavor? : @moonjson.Flavor) -> Json raise @moonjson.Refused
+pub fn loads(StringView, flavor? : @moonjson.Flavor) -> @moonbitlang/core/json.Json raise @moonjson.Refused
 
 // Errors
 

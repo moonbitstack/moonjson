@@ -8,12 +8,13 @@
 /// The one knob the format leaves open is how deep a document may nest before it
 /// is refused, because a document of a hundred thousand open brackets is a
 /// denial of service rather than a document.
+#derive(Eq, Debug)
 pub(all) struct Policy {
   /// How deep nesting may go. The same five hundred the text reader allows, and
   /// for the same reason: a document of a hundred thousand open brackets is a
   /// denial of service rather than a document.
   depth : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Policy with Eq::{equal, not_equal}

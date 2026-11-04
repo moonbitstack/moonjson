@@ -8,6 +8,7 @@
 /// [`StringView`] indexes by; line and column are one-based, because that is
 /// how every editor counts and an error a person cannot find in their file is
 /// half an error.
+#derive(Eq, Debug)
 pub(all) struct At {
   /// The offset in UTF-16 code units from the start of the document, which is
   /// what a [`StringView`] indexes by.
@@ -16,7 +17,7 @@ pub(all) struct At {
   line : Int32
   /// The column the offset is at, counting from one.
   column : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend At with Eq::{equal, not_equal}
@@ -33,6 +34,7 @@ pub extend At with Debug::{to_repr}
 /// position carries the [`At`] it was found at; a variant about a pointer or a
 /// patch names the pointer itself, because a `move` and a `copy` each carry two
 /// and an error that did not say which one would be half an error.
+#derive(Eq, Debug)
 pub(all) suberror Refused {
   // Reading text.
   /// A character that cannot start or continue what is being read.
@@ -93,7 +95,7 @@ pub(all) suberror Refused {
   IntoChild(from~ : String, path~ : String)
   /// The operation names the root, which has no parent to take it from.
   Root(path~ : String)
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Refused with Eq::{equal, not_equal}

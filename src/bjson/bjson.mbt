@@ -13,12 +13,13 @@
 
 ///|
 /// How bjson is read and written.
+#derive(Eq, Debug)
 pub(all) struct Policy {
   /// How deep nesting may go, shared with the rest of the family. A document of
   /// a hundred thousand open containers is a denial of service rather than a
   /// document, so the same five hundred the text reader allows is the default.
   depth : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Policy with Eq::{equal, not_equal}

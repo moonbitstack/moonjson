@@ -2,13 +2,14 @@
 package "moonbitstack/moonjson/jcs"
 
 import {
+  "moonbitlang/core/json",
   "moonbitstack/moonjson",
 }
 
 // Values
-pub fn dump(Json) -> Bytes raise @moonjson.Refused
+pub fn dump(@json.Json) -> Bytes raise @moonjson.Refused
 
-pub fn dumps(Json) -> String raise @moonjson.Refused
+pub fn dumps(@json.Json) -> String raise @moonjson.Refused
 
 // Errors
 

@@ -8,6 +8,7 @@
 /// does, so that is the default. The other two are here because a document with
 /// two `"id"` members is usually a mistake, and a reader that wants to hear
 /// about it should not have to write its own parser.
+#derive(Eq, Debug)
 pub(all) enum Duplicates {
   /// The last one wins. What everybody does.
   Last
@@ -15,7 +16,7 @@ pub(all) enum Duplicates {
   First
   /// A repeated name is an error.
   Reject
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Duplicates with Eq::{equal, not_equal}
@@ -35,6 +36,7 @@ pub extend Duplicates with Debug::{to_repr}
 /// as arguments because they are set once for a deployment and because this
 /// family has sixteen entry points: a policy added here costs one line, and a
 /// policy added to every signature costs sixteen.
+#derive(Eq, Debug)
 pub(all) struct Flavor {
   /// `//` to end of line, and `/* … */`.
   comments : Bool
@@ -68,7 +70,7 @@ pub(all) struct Flavor {
   surrogates : Bool
   /// What a repeated member name means.
   duplicates : Duplicates
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Flavor with Eq::{equal, not_equal}

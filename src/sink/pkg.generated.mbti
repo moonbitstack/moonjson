@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitstack/moonjson/sink"
 
+import {
+  "moonbitlang/core/json",
+}
+
 // Values
 
 // Errors
@@ -14,7 +18,7 @@ pub fn Sink::length(Self) -> Int32
 pub fn Sink::new() -> Self
 pub fn Sink::to_bytes(Self) -> Bytes
 pub fn Sink::to_string(Self) -> String
-pub fn Sink::write(Self, Json) -> Unit
+pub fn Sink::write(Self, @json.Json) -> Unit
 
 // Type aliases
 

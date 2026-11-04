@@ -3,6 +3,7 @@
 
 ///|
 /// One operation in a patch document, as RFC 6902 §4 names the six.
+#derive(Eq, Debug)
 pub(all) enum Operation {
   /// Put `value` where `path` leads (RFC 6902 §4.1).
   ///
@@ -34,7 +35,7 @@ pub(all) enum Operation {
   /// Equality is the tree's: a number equals the same number written another
   /// way, because the tree holds a number as a number and not as text.
   Test(path~ : String, value~ : Json)
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Operation with Eq::{equal, not_equal}

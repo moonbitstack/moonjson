@@ -3,23 +3,25 @@ package "moonbitstack/moonjson/cbor"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
   "moonbitstack/moonjson",
 }
 
 // Values
-pub fn dump(Json, policy? : Policy) -> Bytes raise @moonjson.Refused
+pub fn dump(@json.Json, policy? : Policy) -> Bytes raise @moonjson.Refused
 
-pub fn load(BytesView, policy? : Policy) -> Json raise @moonjson.Refused
+pub fn load(BytesView, policy? : Policy) -> @json.Json raise @moonjson.Refused
 
 pub let policy : Policy
 
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) struct Policy {
   deterministic : Bool
   depth : Int32
-} derive(Eq, @debug.Debug)
+}
 pub fn Policy::equal(Self, Self) -> Bool
 pub fn Policy::new(deterministic? : Bool, depth? : Int32) -> Self
 pub fn Policy::not_equal(Self, Self) -> Bool

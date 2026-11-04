@@ -3,12 +3,13 @@
 
 ///|
 /// How wide a float is written.
+#derive(Eq, Debug)
 pub(all) enum Floats {
   /// 32 bits when the value comes back unchanged, 64 when it does not.
   Shortest
   /// Always 64 bits.
   Double
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Floats with Eq::{equal, not_equal}
@@ -18,6 +19,7 @@ pub extend Floats with Debug::{to_repr}
 
 ///|
 /// How MessagePack is read and written.
+#derive(Eq, Debug)
 pub(all) struct Policy {
   /// MessagePack's reference implementation writes every float as a double
   /// unless it is told otherwise, so that is the default: a 32-bit float that
@@ -26,7 +28,7 @@ pub(all) struct Policy {
   floats : Floats
   /// How deep nesting may go before the document is refused.
   depth : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Policy with Eq::{equal, not_equal}

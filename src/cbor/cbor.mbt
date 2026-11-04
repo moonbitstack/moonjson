@@ -7,6 +7,7 @@
 /// Two knobs, both of them things the RFC leaves open rather than things we
 /// invented: whether to write the deterministic form, and how deep a document
 /// may nest before it is refused.
+#derive(Eq, Debug)
 pub(all) struct Policy {
   /// Write the deterministic encoding of RFC 8949 §4.2.3: the shortest form for
   /// every length and every number, floats in the shortest width that reads
@@ -22,7 +23,7 @@ pub(all) struct Policy {
   /// for the same reason: a document of a hundred thousand open brackets is a
   /// denial of service rather than a document.
   depth : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Policy with Eq::{equal, not_equal}

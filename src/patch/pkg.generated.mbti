@@ -3,11 +3,12 @@ package "moonbitstack/moonjson/patch"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
   "moonbitstack/moonjson",
 }
 
 // Values
-pub fn apply(Json, ArrayView[Operation]) -> Json raise @moonjson.Refused
+pub fn apply(@json.Json, ArrayView[Operation]) -> @json.Json raise @moonjson.Refused
 
 pub fn dump(ArrayView[Operation], indent? : Int32, ascii? : Bool, sort? : Bool) -> Bytes
 
@@ -20,14 +21,15 @@ pub fn loads(StringView, flavor? : @moonjson.Flavor) -> Array[Operation] raise @
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) enum Operation {
-  Add(path~ : String, value~ : Json)
+  Add(path~ : String, value~ : @json.Json)
   Remove(path~ : String)
-  Replace(path~ : String, value~ : Json)
+  Replace(path~ : String, value~ : @json.Json)
   Move(path~ : String, from~ : String)
   Copy(path~ : String, from~ : String)
-  Test(path~ : String, value~ : Json)
-} derive(Eq, @debug.Debug)
+  Test(path~ : String, value~ : @json.Json)
+}
 pub fn Operation::equal(Self, Self) -> Bool
 pub fn Operation::not_equal(Self, Self) -> Bool
 pub fn Operation::to_repr(Self) -> @debug.Repr

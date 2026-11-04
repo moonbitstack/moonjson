@@ -3,31 +3,34 @@ package "moonbitstack/moonjson/msgpack"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
   "moonbitstack/moonjson",
 }
 
 // Values
-pub fn dump(Json, policy? : Policy) -> Bytes raise @moonjson.Refused
+pub fn dump(@json.Json, policy? : Policy) -> Bytes raise @moonjson.Refused
 
-pub fn load(BytesView, policy? : Policy) -> Json raise @moonjson.Refused
+pub fn load(BytesView, policy? : Policy) -> @json.Json raise @moonjson.Refused
 
 pub let policy : Policy
 
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) enum Floats {
   Shortest
   Double
-} derive(Eq, @debug.Debug)
+}
 pub fn Floats::equal(Self, Self) -> Bool
 pub fn Floats::not_equal(Self, Self) -> Bool
 pub fn Floats::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Policy {
   floats : Floats
   depth : Int32
-} derive(Eq, @debug.Debug)
+}
 pub fn Policy::equal(Self, Self) -> Bool
 pub fn Policy::new(floats? : Floats, depth? : Int32) -> Self
 pub fn Policy::not_equal(Self, Self) -> Bool

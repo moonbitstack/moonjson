@@ -1,8 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitstack/moonjson/merge"
 
+import {
+  "moonbitlang/core/json",
+}
+
 // Values
-pub fn merge(Json, Json) -> Json
+pub fn merge(@json.Json, @json.Json) -> @json.Json
 
 // Errors
 

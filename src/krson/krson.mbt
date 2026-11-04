@@ -9,6 +9,7 @@
 /// Two knobs, both things the format leaves to the caller rather than things we
 /// invented: whether object members are written in sorted key order, and how
 /// deep a document may nest before it is refused.
+#derive(Eq, Debug)
 pub(all) struct Policy {
   /// Write object members in bytewise order of their key. KRSON is a
   /// self-describing format, so the order never changes what is read back, but a
@@ -19,7 +20,7 @@ pub(all) struct Policy {
   /// for the same reason: a document of a hundred thousand open brackets is a
   /// denial of service rather than a document.
   depth : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Policy with Eq::{equal, not_equal}

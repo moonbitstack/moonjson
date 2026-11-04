@@ -1,8 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitstack/moonjson/roundtrip"
 
+import {
+  "moonbitlang/core/json",
+}
+
 // Values
-pub fn sample() -> Json
+pub fn sample() -> @json.Json
 
 // Errors
 

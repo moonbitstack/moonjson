@@ -8,10 +8,11 @@
 /// The byte layout itself is fixed by the spec; the one knob is how deep a
 /// document may nest before it is refused, because a document of a hundred
 /// thousand open brackets is a denial of service rather than a document.
+#derive(Eq, Debug)
 pub(all) struct Policy {
   /// The deepest nesting accepted, in levels.
   depth : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Policy with Eq::{equal, not_equal}

@@ -2,17 +2,18 @@
 package "moonbitstack/moonjson/lines"
 
 import {
+  "moonbitlang/core/json",
   "moonbitstack/moonjson",
 }
 
 // Values
-pub fn dump_all(ArrayView[Json], ascii? : Bool, sort? : Bool) -> Bytes
+pub fn dump_all(ArrayView[@json.Json], ascii? : Bool, sort? : Bool) -> Bytes
 
-pub fn dumps_all(ArrayView[Json], ascii? : Bool, sort? : Bool) -> String
+pub fn dumps_all(ArrayView[@json.Json], ascii? : Bool, sort? : Bool) -> String
 
-pub fn load_all(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> Array[Json] raise @moonjson.Refused
+pub fn load_all(BytesView, flavor? : @moonjson.Flavor, bom? : Bool) -> Array[@json.Json] raise @moonjson.Refused
 
-pub fn loads_all(StringView, flavor? : @moonjson.Flavor) -> Array[Json] raise @moonjson.Refused
+pub fn loads_all(StringView, flavor? : @moonjson.Flavor) -> Array[@json.Json] raise @moonjson.Refused
 
 // Errors
 

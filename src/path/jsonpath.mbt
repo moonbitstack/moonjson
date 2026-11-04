@@ -34,6 +34,7 @@ pub(all) enum Segment {
 
 ///|
 /// A comparable operator.
+#derive(Eq, Debug)
 pub(all) enum Op {
   /// Equal.
   Eq
@@ -47,7 +48,7 @@ pub(all) enum Op {
   Gt
   /// Greater than or equal.
   Ge
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Op with Eq::{equal, not_equal}

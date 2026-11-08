@@ -13,3 +13,17 @@ import {
   "moonbitlang/core/double",
   "moonbitlang/core/string",
 }
+
+// The documentation's numbers, asserted: the whole family is the subject, so
+// the test is here rather than in any one dialect.
+import {
+  "moonbitstack/moonjson/cbor",
+  "moonbitstack/moonjson/json",
+  "moonbitstack/moonjson/json5",
+  "moonbitstack/moonjson/jsonc",
+  "moonbitstack/moonjson/lines",
+  "moonbitstack/moonjson/merge",
+  "moonbitstack/moonjson/patch",
+  "moonbitstack/moonjson/path",
+  "moonbitstack/moonjson/pointer",
+} for "test"

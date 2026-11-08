@@ -103,14 +103,18 @@
           <div class="code-card" aria-label="A first look">
             <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
             <pre data-lang="moonbit">let config = @json.loads("{\"host\":\"localhost\",\"port\":8080}")
-@json.dumps(config)            // {"host":"localhost","port":8080}
-@json.dumps(config, indent=2)  // over several lines
+assert_eq(@json.dumps(config), "{\"host\":\"localhost\",\"port\":8080}")
+assert_eq(@json.dumps(config, indent=2), "{\n  \"host\": \"localhost\",\n  \"port\": 8080\n}")
 
 // The same document, written the way a settings file is written.
-@jsonc.loads("{\"port\": 8080,  // the one we bound\n}")
+let source =
+  #|{
+  #|  "port": 8080,  // the one we bound
+  #|}
+assert_eq(@jsonc.loads(source[:]), @json.loads("{\"port\":8080}"))
 
 // One place in a document, named (RFC 6901).
-@pointer.get(config, "/host")  // "localhost"</pre>
+assert_eq(@json.dumps(@pointer.get(config, "/port")), "8080")</pre>
           </div>
         </div>
       </div>

@@ -91,21 +91,30 @@
             <div class="prose">
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">let config = @json.loads("{\"host\":\"localhost\",\"port\":8080,\"tls\":false}")
-@json.dumps(config)
-@json.dumps(config, indent=2)
-@json.dump(config)              // the same, as the bytes of a body
-@json.load(@json.dump(config)[:])</pre>
+                <pre data-lang="moonbit">let config = @json.loads("{\"host\":\"localhost\",\"port\":8080}")
+assert_eq(@json.dumps(config), "{\"host\":\"localhost\",\"port\":8080}")
+assert_eq(@json.dumps(config, indent=2), "{\n  \"host\": \"localhost\",\n  \"port\": 8080\n}")
+
+// The same document, written the way a settings file is written.
+let source =
+  #|{
+  #|  "port": 8080,  // the one we bound
+  #|}
+assert_eq(@jsonc.loads(source[:]), @json.loads("{\"port\":8080}"))</pre>
               </div>
               <div class="code-card">
                 <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
-                <pre>{"host":"localhost","port":8080,"tls":false}
+                <pre>{"host":"localhost","port":8080}
 {
   "host": "localhost",
-  "port": 8080,
-  "tls": false
+  "port": 8080
 }</pre>
               </div>
+              <p>
+                The same over bytes: <code>@json.dump(config)</code> answers the
+                body, and <code>@json.load(body[:])</code> reads it back to a
+                tree equal to the one that wrote it.
+              </p>
               <p>
                 A document is one value and nothing else: anything after it other
                 than whitespace is <code>Trailing</code>, not quietly ignored. A
@@ -206,23 +215,24 @@
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
                 <pre data-lang="moonbit">// One field, and nothing else changes.
-let cfg = @pointer.set(config, "/port", Json::number(9090))
-@pointer.get(cfg, "/port")            // 9090
-@pointer.has(cfg, "/port")            // true
+let moved = @pointer.set(config, "/port", Json::number(9090))
+assert_eq(@json.dumps(moved), "{\"host\":\"localhost\",\"port\":9090}")
 
-// Six operations, applied in order — or, if one fails, not at all.
+// Two operations, applied in order — or, if one fails, not at all.
 let ops = @patch.loads(
-  "[{\"op\":\"replace\",\"path\":\"/port\",\"value\":9090},{\"op\":\"add\",\"path\":\"/tls\",\"value\":true}]"
+  "[{\"op\":\"replace\",\"path\":\"/port\",\"value\":9090},{\"op\":\"add\",\"path\":\"/tls\",\"value\":true}]",
 )
-@patch.apply(config, ops)
+let with_tls = @patch.apply(moved, ops)
+assert_eq(@json.dumps(with_tls), "{\"host\":\"localhost\",\"port\":9090,\"tls\":true}")
 
 // A patch that looks like the document: a member that is not there is added,
 // one that is there is replaced, and a null takes one away.
-@merge.merge(config, @json.loads("{\"port\":9090,\"tls\":null}"))</pre>
+assert_eq(@json.dumps(@merge.merge(with_tls, @json.loads("{\"tls\":null}"))), "{\"host\":\"localhost\",\"port\":9090}")</pre>
               </div>
               <div class="code-card">
                 <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
-                <pre>{"host":"localhost","port":9090,"tls":true}
+                <pre>{"host":"localhost","port":9090}
+{"host":"localhost","port":9090,"tls":true}
 {"host":"localhost","port":9090}</pre>
               </div>
               <p>
@@ -254,21 +264,19 @@ let ops = @patch.loads(
             <div class="prose">
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">let plain = @json.loads("{\"host\":\"localhost\",\"port\":8080,\"tls\":false}")
-
-let source =
+                <pre data-lang="moonbit">let source =
   #|{
   #|  "host": "localhost",  // where to bind
   #|  "port": 8080,
   #|  "tls": false,         // a certificate is not set up yet
   #|}
-@jsonc.loads(source[:]) == plain       // true
-@json5.loads("{host:'localhost',port:8080,tls:false,}") == plain   // true</pre>
+let commented = @jsonc.loads(source[:])
+assert_eq(@json.dumps(commented), "{\"host\":\"localhost\",\"port\":8080,\"tls\":false}")
+assert_eq(@json5.loads("{host:'localhost',port:8080,tls:false,}"), commented)</pre>
               </div>
               <div class="code-card">
                 <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
-                <pre>jsonc == json -> true
-json5 == json -> true</pre>
+                <pre>{"host":"localhost","port":8080,"tls":false}</pre>
               </div>
               <h3 id="json">json</h3>
               <p>
@@ -293,7 +301,7 @@ json5 == json -> true</pre>
               </p>
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">@json5.dumps(@json5.loads("[Infinity,NaN,0xFF]"))</pre>
+                <pre data-lang="moonbit">assert_eq(@json5.dumps(@json5.loads("[Infinity,NaN,0xFF]")), "[null,null,255]")</pre>
               </div>
               <div class="code-card">
                 <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
@@ -309,7 +317,7 @@ json5 == json -> true</pre>
               </p>
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">@lines.loads_all("{\"n\":1}\n{\"n\":2}\n{\"n\":3}\n").length()</pre>
+                <pre data-lang="moonbit">assert_eq(@lines.loads_all("{\"n\":1}\n{\"n\":2}\n{\"n\":3}\n").length(), 3)</pre>
               </div>
               <div class="code-card">
                 <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
@@ -377,16 +385,18 @@ json5 == json -> true</pre>
                 <pre data-lang="moonbit">let shelf = @json.loads(
   "{\"store\":{\"book\":[{\"title\":\"A\",\"price\":8.95},{\"title\":\"B\",\"price\":12.99},{\"title\":\"C\",\"price\":8.99}]}}"
 )
-@path.select(shelf, "$..book[?@.price&lt;10].title")
+let cheap = @path.select(shelf, "$..book[?@.price&lt;10].title")
+assert_eq(@json.dumps(Json::array(cheap)), "[\"A\",\"C\"]")
 
 // A query is compiled once and run against any number of documents, because a
 // filter is evaluated once per node.
 let query = @path.compile("$.store.book[*].title")
-query.select(shelf)</pre>
+assert_eq(@json.dumps(Json::array(query.select(shelf))), "[\"A\",\"B\",\"C\"]")</pre>
               </div>
               <div class="code-card">
                 <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>
-                <pre>["A","C"]</pre>
+                <pre>["A","C"]
+["A","B","C"]</pre>
               </div>
               <p>
                 <code>match</code> and <code>search</code> take I-Regexp,
@@ -413,10 +423,17 @@ query.select(shelf)</pre>
             <div class="prose">
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">@json.loads(text)                                     // strict JSON
-@jsonc.loads(text)                                    // the same, plus comments
-@json.loads(text, flavor=@moonjson.Flavor::new(depth=100))
-@json.loads(text, flavor={ ..@moonjson.strict, duplicates: Reject })</pre>
+                <pre data-lang="moonbit">// A strict reader and a commented one, on the same text: the same tree.
+let text = "{\"spec\":{\"replicas\":1,\"image\":\"app:1\"}}"
+let same = @jsonc.loads(text[:])
+assert_eq(same, @json.loads(text[:]))
+
+// The dialect's preset is the base; the record you pass lies over it.
+assert_eq(@json.loads(text[:], flavor=@moonjson.Flavor::new(depth=100)), same)
+assert_eq(
+  @json.loads(text[:], flavor={ ..@moonjson.strict, duplicates: @moonjson.Duplicates::First }),
+  same,
+)</pre>
               </div>
               <p>
                 Two layers, the later overriding the earlier:
@@ -480,7 +497,7 @@ query.select(shelf)</pre>
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
                 <pre data-lang="moonbit">let wide = "[1e400,12345678901234567890,0.1]"
-@json.dumps(@json.loads(wide)) == wide      // true</pre>
+assert_eq(@json.dumps(@json.loads(wide)), wide)</pre>
               </div>
               <p>
                 A number JSON has no syntax for, which JSON5 can produce, is
@@ -503,10 +520,15 @@ query.select(shelf)</pre>
             <div class="prose">
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") catch {
+                <pre data-lang="moonbit">let broken =
+  #|{
+  #|  "a": 1,
+  #|  "b": ?
+  #|}
+try @json.loads(broken[:]) |> ignore catch {
   e => match e.at() {
-    Some(spot) => println("line \{spot.line}, column \{spot.column}")
-    None => println(e)          // a pointer or a patch, which has a path instead
+    Some(spot) => assert_eq("line \{spot.line}, column \{spot.column}", "line 3, column 8")
+    None => abort("a scanner refusal carries a place")  // a pointer or a patch has a path instead
   }
 }</pre>
               </div>
@@ -521,8 +543,8 @@ query.select(shelf)</pre>
               </p>
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">try @json.loads(text) catch {
-  e => println(e.message())
+                <pre data-lang="moonbit">try @json.loads(broken[:]) |> ignore catch {
+  e => assert_eq(e.message(), "line 3, column 8: unexpected '?'")
 }</pre>
               </div>
               <div class="code-card">
@@ -565,12 +587,16 @@ query.select(shelf)</pre>
             <div class="prose">
               <div class="code-card">
                 <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
-                <pre data-lang="moonbit">let body = @cbor.dump(config)          // the same tree, as bytes
-@hex.encode(body[:])
-@cbor.load(body[:]) == config          // true
+                <pre data-lang="moonbit">let plain = @json.loads("{\"host\":\"localhost\",\"port\":8080,\"tls\":false}")
+let body = @cbor.dump(plain)                     // the same tree, as bytes
+assert_eq(@hex.encode(body[:]), "a363746c73f464686f7374696c6f63616c686f737464706f7274191f90")
+assert_eq(@cbor.load(body[:]), plain)            // and back, the same tree
 
-@json.dumps(@msgpack.load(@msgpack.dump(config)))
-@bson.dump(@json.loads("{\"$oid\":\"507f1f77bcf86cd799439011\"}"))</pre>
+assert_eq(@json.dumps(@msgpack.load(@msgpack.dump(plain)[:])), "{\"host\":\"localhost\",\"port\":8080,\"tls\":false}")
+
+// A type JSON has no syntax for travels as a marker, and is read back as one.
+let oid = @json.loads("{\"$oid\":\"507f1f77bcf86cd799439011\"}")
+assert_eq(@json.dumps(@bson.load(@bson.dump(oid)[:])), "{\"$oid\":\"507f1f77bcf86cd799439011\"}")</pre>
               </div>
               <div class="code-card">
                 <div class="bar"><span class="lang">output</span><span class="spacer"></span></div>

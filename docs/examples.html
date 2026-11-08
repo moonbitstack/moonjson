@@ -257,7 +257,10 @@ println(@json.dumps(@merge.merge(spec, @json.loads(patch_text))))</pre>
           <div class="code-card">
             <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
             <pre data-lang="moonbit">try @json.loads("{\n  \"a\": 1,\n  \"b\": ?\n}") |> ignore catch {
-  e => println("line \{e.at().line}, column \{e.at().column}")
+  e => match e.at() {
+    Some(spot) => println("line \{spot.line}, column \{spot.column}")
+    None => println(e.message())
+  }
 } noraise {
   _ => ()
 }</pre>

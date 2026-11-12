@@ -166,3 +166,61 @@ test "load reads UTF-8 bytes" {
     _ => fail("invalid UTF-8 was accepted")
   }
 }
+
+///|
+/// A quoteless string runs to the end of the line, so the characters a JSON
+/// string would have to escape are ordinary inside one: a space, a quote, a
+/// backslash. Every writer of this dialect leans on that — the reference
+/// implementation writes `héllo wörld` and `quote " and '` unquoted — and a
+/// reader that stopped at the first space read a prefix of the value and then
+/// refused the rest of the line as trailing input.
+test "a quoteless string holds spaces, quotes and backslashes" {
+  assert_eq(@hjson.loads("héllo wörld"), Json::string("héllo wörld"))
+  assert_eq(
+    @hjson.loads("quote \" and ' and \\"),
+    Json::string("quote \" and ' and \\"),
+  )
+  assert_eq(
+    @json.dumps(@hjson.loads("{a: hello there, b: 1}"), sort=true),
+    "{\"a\":\"hello there\",\"b\":1}",
+  )
+}
+
+///|
+/// A bareword member name is any text up to the colon, so a name that is not an
+/// ASCII identifier — a Cyrillic one, a Japanese one, a number — needs no
+/// quotes. A space inside one does need them, and is refused rather than
+/// silently joined.
+test "a bareword member name is more than an identifier" {
+  assert_eq(
+    @json.dumps(
+      @hjson.loads("{ключ: значение, 日本: 語}"),
+      sort=true,
+    ),
+    "{\"ключ\":\"значение\",\"日本\":\"語\"}",
+  )
+  assert_eq(@json.dumps(@hjson.loads("{1: 2}"), sort=true), "{\"1\":2}")
+  assert_eq(@json.dumps(@hjson.loads("{a.b-c: 1}"), sort=true), "{\"a.b-c\":1}")
+  // One space after the name, before the colon, is the space after the name.
+  assert_eq(
+    @json.dumps(@hjson.loads("{host : 8080}"), sort=true),
+    "{\"host\":8080}",
+  )
+  try @hjson.loads("{a b: 1}") |> ignore catch {
+    _ => ()
+  } noraise {
+    _ => fail("a name with a space in it was accepted")
+  }
+}
+
+///|
+/// The same grammar, written back out and read again: a value with a space in
+/// it, and a name outside ASCII, survive the round trip through the writer this
+/// package delegates to.
+test "quoteless text round trips" {
+  let source = "{name: héllo wörld, ключ: значение}"
+  assert_eq(
+    @hjson.loads(@hjson.dumps(@hjson.loads(source))),
+    @hjson.loads(source),
+  )
+}

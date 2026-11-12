@@ -228,50 +228,75 @@ fn Parser::skip_inline_space(self : Parser) -> Unit {
 }
 
 ///|
-/// A member name: a quoted string or a bareword. Returns `None` when the
-/// cursor is not at one.
-fn Parser::try_keyname(self : Parser) -> String? raise @moonjson.Refused {
-  let c = self.here()
-  if c == 0x22 {
-    return Some(self.read_string(0x22))
-  }
-  if c == 0x27 {
-    if self.peek(self.i + 1) == 0x27 && self.peek(self.i + 2) == 0x27 {
-      return None
+/// Whether the bareword at the cursor is a member name: it ends in a colon
+/// before the line does. `host: 1` starts an object, `a value` does not.
+fn Parser::bareword_is_member(self : Parser) -> Bool {
+  let mut k = self.i
+  while k < self.src.length() {
+    let c = self.src.at(k).to_int()
+    if c == 0x3A {
+      return true
     }
-    return Some(self.read_string(0x27))
-  }
-  if c == 0x24 ||
-    c == 0x5F ||
-    (c >= 0x41 && c <= 0x5A) ||
-    (c >= 0x61 && c <= 0x7A) {
-    let start = self.i
-    while true {
-      let d = self.here()
-      if d == 0x24 ||
-        d == 0x5F ||
-        d == 0x2D ||
-        d == 0x2E ||
-        (d >= 0x41 && d <= 0x5A) ||
-        (d >= 0x61 && d <= 0x7A) ||
-        (d >= 0x30 && d <= 0x39) {
-        self.i += 1
-      } else {
-        break
-      }
+    if c == 0x0A || c == 0x0D || c == 0x2C || c == 0x7D || c == 0x5D {
+      return false
     }
-    return Some(self.src[start:self.i].to_owned())
+    k += 1
   }
-  None
+  false
 }
 
 ///|
 /// A member name, or a refusal.
+///
+/// A bareword name runs to the colon, and may be any text without `{}[],` and
+/// without a colon of its own — `ключ`, `日本` and `a.b` are names as much as
+/// `host` is. Whitespace inside it is a mistake the writer would not have made,
+/// because a name with a space is written in quotes; whitespace just before the
+/// colon is only the space after the name.
 fn Parser::read_keyname(self : Parser) -> String raise @moonjson.Refused {
-  match self.try_keyname() {
-    Some(k) => k
-    None => raise self.error("expected a member name")
+  let c = self.here()
+  if c == 0x22 {
+    return self.read_string(0x22)
   }
+  if c == 0x27 {
+    if self.peek(self.i + 1) == 0x27 && self.peek(self.i + 2) == 0x27 {
+      raise self.error("expected a member name")
+    }
+    return self.read_string(0x27)
+  }
+  let start = self.i
+  let mut space = -1
+  let mut name = ""
+  let mut done = false
+  while !done {
+    let d = self.here()
+    if d < 0 {
+      raise self.error("expected a member name")
+    } else if d == 0x3A || d == 0x0A || d == 0x0D {
+      let stop = if space >= 0 { space } else { self.i }
+      if stop == start {
+        raise self.error("expected a member name")
+      }
+      if space >= 0 && space != self.i - 1 {
+        raise self.error("a member name may not hold a space")
+      }
+      self.i = stop
+      name = self.src[start:stop].to_owned()
+      done = true
+    } else if d == 0x7B || d == 0x7D || d == 0x5B || d == 0x5D || d == 0x2C {
+      raise self.error("expected a member name")
+    } else {
+      if d == 0x20 || d == 0x09 {
+        if space < 0 || space == self.i - 1 {
+          space = self.i
+        } else {
+          raise self.error("a member name may not hold a space")
+        }
+      }
+      self.i += 1
+    }
+  }
+  name
 }
 
 ///|
@@ -448,27 +473,24 @@ fn Parser::read_mlstring(
 }
 
 ///|
-/// A run of quoteless characters: anything but whitespace, a structural
-/// character, a comment start, a quote, or a control character.
+/// A quoteless string: it runs to the end of the line, or to the character that
+/// ends the value, and is trimmed at both ends.
+///
+/// Spaces, quotes and backslashes inside it are ordinary characters, which is
+/// the point of the form — `héllo wörld`, `quote " and '`, `C://tmp` are each
+/// written as they read. What ends it is a newline, a `,`, a `}` or a `]`, or
+/// the start of a comment.
 fn Parser::read_quoteless(self : Parser) -> String raise @moonjson.Refused {
   let start = self.i
   while true {
     let c = self.here()
-    if c < 0 {
-      break
-    } else if is_ws(c) {
-      break
-    } else if c == 0x7B ||
-      c == 0x7D ||
-      c == 0x5B ||
-      c == 0x5D ||
+    if c < 0 ||
+      c == 0x0A ||
+      c == 0x0D ||
       c == 0x2C ||
-      c == 0x3A ||
-      c == 0x23 ||
-      c == 0x22 ||
-      c == 0x27 {
-      break
-    } else if c < 0x20 {
+      c == 0x7D ||
+      c == 0x5D ||
+      c == 0x23 {
       break
     } else if c == 0x2F &&
       (self.peek(self.i + 1) == 0x2F || self.peek(self.i + 1) == 0x2A) {
@@ -477,10 +499,26 @@ fn Parser::read_quoteless(self : Parser) -> String raise @moonjson.Refused {
       self.i += 1
     }
   }
-  if self.i == start {
+  let mut from = start
+  let mut to = self.i
+  while from < to &&
+        (
+          self.src.at(from).to_int() == 0x20 ||
+          self.src.at(from).to_int() == 0x09
+        ) {
+    from += 1
+  }
+  while to > from &&
+        (
+          self.src.at(to - 1).to_int() == 0x20 ||
+          self.src.at(to - 1).to_int() == 0x09
+        ) {
+    to -= 1
+  }
+  if from == to {
     raise self.error("empty value")
   }
-  self.src[start:self.i].to_owned()
+  self.src[from:to].to_owned()
 }
 
 ///|
@@ -586,19 +624,10 @@ fn Parser::scalar(self : Parser) -> Json raise @moonjson.Refused {
 /// A bareword at a value position: an object when followed by `:`, otherwise a
 /// scalar.
 fn Parser::scalar_or_object(self : Parser) -> Json raise @moonjson.Refused {
-  let saved = self.i
-  match self.try_keyname() {
-    Some(_) => {
-      self.white_inline()
-      if self.here() == 0x3A {
-        self.i = saved
-        return self.read_object(false)
-      }
-      self.i = saved
-      return self.scalar()
-    }
-    None => self.scalar()
+  if self.bareword_is_member() {
+    return self.read_object(false)
   }
+  self.scalar()
 }
 
 ///|
@@ -717,23 +746,10 @@ fn Parser::parse(self : Parser) -> Json raise @moonjson.Refused {
   } else if c == 0x2D && is_ws(self.peek(self.i + 1)) {
     return self.read_array(false)
   }
-  let saved = self.i
-  match self.try_keyname() {
-    Some(k) => {
-      self.white_inline()
-      if self.here() == 0x3A {
-        self.i = saved
-        self.read_object(false)
-      } else if k == "true" || k == "false" || k == "null" {
-        self.i = saved
-        self.scalar()
-      } else {
-        self.i = saved
-        self.scalar()
-      }
-    }
-    None => self.scalar()
+  if self.bareword_is_member() {
+    return self.read_object(false)
   }
+  self.scalar()
 }
 
 ///|

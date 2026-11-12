@@ -170,3 +170,17 @@ test "a stream of documents is one per line" {
   assert_eq(records.length(), 3)
   assert_eq(@lines.dumps_all(records), "{\"n\":1}\n{\"n\":2}\n{\"n\":3}\n")
 }
+
+///|
+/// The README's decoder: two values in one buffer, and the offset it prints
+/// after the first of them.
+test "several values in one buffer" {
+  let stream = @moonjson.Decoder::new(
+    "{\"a\":1}\n{\"b\":2}"[:],
+    @moonjson.strict,
+  )
+  assert_eq(@json.dumps(stream.read().unwrap()), "{\"a\":1}")
+  assert_eq(stream.offset(), 7)
+  assert_eq(@json.dumps(stream.read().unwrap()), "{\"b\":2}")
+  assert_eq(stream.read() is None, true)
+}

@@ -5,6 +5,7 @@
 // it touches, and a filter is evaluated once per node.
 import {
   "moonbitstack/moonjson",
+  "moonbitstack/moonucd",
 }
 
 import {

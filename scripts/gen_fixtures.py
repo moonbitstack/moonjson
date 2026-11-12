@@ -473,65 +473,6 @@ def random_value(rng, depth=0):
     return {key: random_value(rng, depth + 1) for key in keys[: rng.randint(0, 4)]}
 
 
-# The general categories, in the order the table in `src/path/category.mbt`
-# uses. `Cn` is "unassigned", which is what a code point outside every range is;
-# `Cs` never appears in a MoonBit string, because a surrogate is half of a
-# character rather than one.
-CATEGORIES = [
-    "Lu", "Ll", "Lt", "Lm", "Lo",
-    "Mn", "Mc", "Me",
-    "Nd", "Nl", "No",
-    "Pc", "Pd", "Ps", "Pe", "Pi", "Pf", "Po",
-    "Sm", "Sc", "Sk", "So",
-    "Zs", "Zl", "Zp",
-    "Cc", "Cf", "Co", "Cs", "Cn",
-]
-
-
-def categories():
-    r"""The Unicode general categories, as ranges, for I-Regexp's `\p{...}`.
-
-    RFC 9485 requires full support for the Unicode property set, and the
-    alternative to a table is a regular expression engine that answers `\p{Lu}`
-    by guessing. The data is Python's `unicodedata`, which is the Unicode
-    Character Database; the file it writes is part of the library rather than a
-    test, because a pattern is checked against it at run time.
-    """
-    import unicodedata
-
-    index = {name: i for i, name in enumerate(CATEGORIES)}
-    rows = []
-    start = None
-    previous = None
-    current = None
-    for cp in range(0x110000):
-        name = unicodedata.category(chr(cp))
-        if name in ("Cn", "Cs"):
-            name = "Cn"
-        if name != current or (previous is not None and cp != previous + 1):
-            if current is not None and current != "Cn":
-                rows.append((start, previous, index[current]))
-            start = cp
-            current = name
-        previous = cp
-    if current is not None and current != "Cn":
-        rows.append((start, previous, index[current]))
-
-    body = "\n".join(
-        "  (0x%04x, 0x%04x, %d)," % (low, high, cat)
-        for low, high, cat in rows
-    )
-    path = os.path.join(ROOT, "src", "path", "category.mbt")
-    with open(path, encoding="utf-8") as handle:
-        text = handle.read()
-    start_at = text.index("let ranges : Array[(Int32, Int32, Int32)] = [")
-    begin = start_at + len("let ranges : Array[(Int32, Int32, Int32)] = [")
-    stop = text.index("\n]\n", begin)
-    with open(path, "w", encoding="utf-8", newline="") as handle:
-        handle.write(text[:begin] + "\n" + body + "\n" + text[stop:])
-    print("categories: %d ranges, Unicode %s" % (len(rows), unicodedata.unidata_version))
-
-
 def binary(seed=20261028, count=32):
     """Values chosen at random and encoded by the reference implementation of
     each binary format, so that the tests can ask two questions of every vector:
@@ -587,16 +528,12 @@ def main(argv):
         "jsonpath",
         "json5",
         "binary",
-        "categories",
     ):
         print(__doc__)
         print("corpora known to this script:", ", ".join(sorted(CORPORA)))
         return 2
     if argv[1] == "binary":
         binary()
-        return 0
-    if argv[1] == "categories":
-        categories()
         return 0
     root = fetch(argv[1])
     globals()[argv[1].replace("-", "_")](root)

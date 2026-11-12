@@ -103,7 +103,7 @@ fn run(
         return false
       }
       let c = chars[at].to_int()
-      let mut inside = mask != 0 && (mask & (1 << category_of(c))) != 0
+      let mut inside = mask != 0 && (mask & category_of(chars[at])) != 0
       if !inside {
         for range in ranges {
           if c >= range.0 && c <= range.1 {
@@ -180,8 +180,10 @@ fn is_line_end(c : Int32) -> Bool {
   c == 0x0A || c == 0x0D
 }
 
-// The general categories, one bit each, in the order `category.mbt` numbers
-// them. A pattern names one with `\p{...}`, and a class may hold several.
+// The general categories, one bit each. A pattern names one with `\p{...}`,
+// and a class may hold several. The categories themselves are the Unicode
+// database's, read from `@moonucd` rather than kept here: one copy of that data
+// in the family is enough, and this package wants the same version as the rest.
 
 ///|
 let lu : Int32 = 1 << 0
@@ -278,28 +280,41 @@ let cn : Int32 = 1 << 29
 let every : Int32 = (1 << 30) - 1
 
 ///|
-/// The category a code point has, looked up in the table: a code point in no
-/// range of it is unassigned, which is `Cn`.
-fn category_of(c : Int32) -> Int32 {
-  let mut low = 0
-  let mut high = ranges.length() - 1
-  while low <= high {
-    let mid = (low + high) / 2
-    let (from, to, id) = ranges[mid]
-    if c < from {
-      high = mid - 1
-    } else if c > to {
-      low = mid + 1
-    } else {
-      return id
-    }
+/// The bit the character's general category has.
+fn category_of(c : Char) -> Int32 {
+  match @moonucd.category(c) {
+    Lu => lu
+    Ll => ll
+    Lt => lt
+    Lm => lm
+    Lo => lo
+    Mn => mn
+    Mc => mc
+    Me => me
+    Nd => nd
+    Nl => nl
+    No => no
+    Pc => pc
+    Pd => pd
+    Ps => ps
+    Pe => pe
+    Pi => pi
+    Pf => pf
+    Po => po
+    Sm => sm
+    Sc => sc
+    Sk => sk
+    So => so
+    Zs => zs
+    Zl => zl
+    Zp => zp
+    Cc => cc
+    Cf => cf
+    Cs => cs
+    Co => co
+    Cn => cn
   }
-  cn_id
 }
-
-///|
-/// The number `Cn` has in the table, which is the last one.
-let cn_id : Int32 = 29
 
 ///|
 /// The categories a `\p{...}` names, as a mask, or `None` when the name is not

@@ -58,6 +58,7 @@ description = "JSON, its dialects and its binary encodings for MoonBit."
 
 import {
   "moonbitstack/moonbase@0.4.5",
+  "moonbitstack/moonucd@0.1.4",
 }
 
 source = "src"

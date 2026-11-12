@@ -57,6 +57,15 @@ jobs:
       - name: the tour runs
         run: moon run src/examples/tour
 
+      # The bench in `integration/` writes with this library and reads with the
+      # reference implementation of each format, then the other way round. A
+      # writer that is only read by its own reader proves nothing.
+      - name: interoperability with the reference implementations
+        if: runner.os == 'Linux'
+        run: |
+          python3 -m pip install --quiet cbor2 msgpack pymongo json5 hjson
+          python3 scripts/interop.py
+
       - name: lint (fmt is clean)
         run: |
           moon fmt && git diff --exit-code

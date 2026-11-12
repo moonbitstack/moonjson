@@ -1,0 +1,22 @@
+// The interoperability bench: this library's writers and readers, driven from
+// outside by the reference implementation of each format. `scripts/interop.py`
+// runs it; see that file for the protocol.
+//
+// Native only: the bench reads and writes files, and the point of it is to run
+// next to a reference implementation on a machine, not in a browser.
+pkgtype(kind: "executable")
+
+supported_targets = "native"
+
+import {
+  "moonbitstack/moonjson",
+  "moonbitstack/moonjson/bson",
+  "moonbitstack/moonjson/cbor",
+  "moonbitstack/moonjson/hjson",
+  "moonbitstack/moonjson/json",
+  "moonbitstack/moonjson/json5",
+  "moonbitstack/moonjson/msgpack",
+  "moonbitstack/moonbase/base16",
+  "moonbitlang/core/env",
+  "moonbitlang/x/fs",
+}

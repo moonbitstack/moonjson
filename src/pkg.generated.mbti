@@ -63,6 +63,18 @@ pub fn At::equal(Self, Self) -> Bool
 pub fn At::not_equal(Self, Self) -> Bool
 pub fn At::to_repr(Self) -> @debug.Repr
 
+pub struct Decoder {
+  text : StringView
+  flavor : Flavor
+  mut offset : Int32
+  mut count : Int32
+}
+pub fn Decoder::count(Self) -> Int32
+pub fn Decoder::is_done(Self) -> Bool raise Refused
+pub fn Decoder::new(StringView, Flavor) -> Self
+pub fn Decoder::offset(Self) -> Int32
+pub fn Decoder::read(Self) -> @json.Json? raise Refused
+
 #derive(Eq, @debug.Debug)
 pub(all) enum Duplicates {
   Last

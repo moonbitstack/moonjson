@@ -69,6 +69,7 @@
         <aside class="docs-toc" aria-label="Table of contents">
           <div class="title">On this page</div>
           <a href="#one-document">One document</a>
+          <a href="#streaming">Several values</a>
           <a href="#changing">Changing it</a>
           <a href="#notations">The notations</a>
           <a href="#querying">Querying it</a>
@@ -200,9 +201,44 @@ assert_eq(@jsonc.loads(source[:]), @json.loads("{\"port\":8080}"))</pre>
             </div>
           </section>
 
-          <section id="changing">
+          <section id="streaming">
             <div class="section-head">
               <div class="kicker">two</div>
+              <h2>Several values in one buffer</h2>
+              <p>
+                A document is one value, so <code>loads</code> answers one and
+                refuses what follows it. A buffer that holds several is read
+                with a decoder, which answers the next value and says where it
+                ended.
+              </p>
+            </div>
+            <div class="prose">
+              <div class="code-card">
+                <div class="bar"><span class="lang">moonbit</span><span class="spacer"></span></div>
+                <pre data-lang="moonbit">let stream = @moonjson.Decoder::new("{\"a\":1}\n{\"b\":2}"[:], @moonjson.strict)
+assert_eq(@json.dumps(stream.read().unwrap()), "{\"a\":1}")
+assert_eq(stream.offset(), 7)
+assert_eq(@json.dumps(stream.read().unwrap()), "{\"b\":2}")
+assert_eq(stream.read() is None, true)</pre>
+              </div>
+              <p>
+                A value may span lines, so this is not splitting on newlines:
+                the offset after each value is where the next one may start, and
+                whitespace and — in a dialect that has them — comments in
+                between are skipped.
+              </p>
+              <p>
+                JSON Lines is the format where a line <em>is</em> the rule, and
+                it has its own package: <code>@lines.loads_all</code> reads the
+                stream at once, and <code>@source</code> hands back one document
+                at a time.
+              </p>
+            </div>
+          </section>
+
+          <section id="changing">
+            <div class="section-head">
+              <div class="kicker">three</div>
               <h2>Changing it</h2>
               <p>
                 Three ways, for three kinds of change. One place is named with a
@@ -253,7 +289,7 @@ assert_eq(@json.dumps(@merge.merge(with_tls, @json.loads("{\"tls\":null}"))), "{
 
           <section id="notations">
             <div class="section-head">
-              <div class="kicker">three</div>
+              <div class="kicker">four</div>
               <h2>The notations</h2>
               <p>
                 One tree, several ways of writing it. Each dialect is a package
@@ -370,7 +406,7 @@ assert_eq(@json5.loads("{host:'localhost',port:8080,tls:false,}"), commented)</p
 
           <section id="querying">
             <div class="section-head">
-              <div class="kicker">four</div>
+              <div class="kicker">five</div>
               <h2>Querying it</h2>
               <p>
                 A pointer names one place; JSONPath asks for a set of them, with
@@ -411,7 +447,7 @@ assert_eq(@json.dumps(Json::array(query.select(shelf))), "[\"A\",\"B\",\"C\"]")<
 
           <section id="reading">
             <div class="section-head">
-              <div class="kicker">five</div>
+              <div class="kicker">six</div>
               <h2>How to read is a value</h2>
               <p>
                 <code>Flavor</code> carries both what syntax a dialect accepts
@@ -479,7 +515,7 @@ assert_eq(
 
           <section id="tree">
             <div class="section-head">
-              <div class="kicker">six</div>
+              <div class="kicker">seven</div>
               <h2>Core's <code>Json</code>, not one of our own</h2>
               <p>
                 Anything that already speaks <code>@json.Json</code> speaks
@@ -509,7 +545,7 @@ assert_eq(@json.dumps(@json.loads(wide)), wide)</pre>
 
           <section id="failures">
             <div class="section-head">
-              <div class="kicker">seven</div>
+              <div class="kicker">eight</div>
               <h2>What went wrong, and where</h2>
               <p>
                 Reading raises <code>Refused</code>, which says what went wrong
@@ -573,7 +609,7 @@ try @json.loads(broken[:]) |> ignore catch {
 
           <section id="binary">
             <div class="section-head">
-              <div class="kicker">eight</div>
+              <div class="kicker">nine</div>
               <h2>The binary formats</h2>
               <p>
                 Ten encodings of the same tree. CBOR, MessagePack and BSON are

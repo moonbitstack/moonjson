@@ -91,6 +91,9 @@ is an ObjectId, not a document that happens to have that member.
 - `Refused` is the one error type for the whole family. `at()` answers the
   offset, line and column for a text format and `None` for a binary one, whose
   variants carry a byte offset instead; `message()` writes the sentence.
+- `loads` answers one document and refuses anything after it. A buffer holding
+  several values is read with `@moonjson.Decoder`: `read()` answers the next
+  value or `None`, and `offset()` is where that value ended.
 - A number keeps the text it was written as, so `1e400` and a twenty-digit
   integer come back unchanged. JSON5's `Infinity` and `NaN` have no JSON
   syntax and are written as `null`.

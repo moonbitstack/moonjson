@@ -55,6 +55,22 @@ let wanted = @pointer.set(cfg, "/spec/replicas", Json::number(5))
 assert_eq(@json.dumps(wanted), "{\"spec\":{\"replicas\":5,\"image\":\"app:1\"}}")
 ```
 
+## More than one value in a buffer
+
+`loads` answers one document and refuses anything after it. A buffer that holds
+several — a log, a socket, a batch file — is read with a `Decoder`, which
+answers the next value and says where it ended. A value may span lines, so this
+is not the same as splitting on newlines: `lines` is the format where a line is
+the rule, and this is the reader where a value is.
+
+```moonbit
+let stream = @moonjson.Decoder::new("{\"a\":1}\n{\"b\":2}"[:], @moonjson.strict)
+assert_eq(@json.dumps(stream.read().unwrap()), "{\"a\":1}")
+assert_eq(stream.offset(), 7)
+assert_eq(@json.dumps(stream.read().unwrap()), "{\"b\":2}")
+assert_eq(stream.read() is None, true)
+```
+
 ## Packages
 
 | Package | What | Specification |

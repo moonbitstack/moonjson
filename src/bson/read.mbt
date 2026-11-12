@@ -171,7 +171,7 @@ fn Reader::element(
     0x05 => {
       let length = self.int32()
       let subtype = self.byte()
-      let bytes = @hex.encode(self.take(length))
+      let bytes = @base16.encode(self.take(length))
       if subtype == 0 {
         Json::object({ "$bytes": Json::string(bytes) })
       } else {
@@ -184,7 +184,8 @@ fn Reader::element(
       }
     }
     0x06 => Json::object({ "$undefined": Json::boolean(true) })
-    0x07 => Json::object({ "$oid": Json::string(@hex.encode(self.take(12))) })
+    0x07 =>
+      Json::object({ "$oid": Json::string(@base16.encode(self.take(12))) })
     0x08 => Json::boolean(self.byte() != 0)
     0x09 => {
       let millis = self.le(8).reinterpret_as_int64()
@@ -203,7 +204,7 @@ fn Reader::element(
     }
     0x0C => {
       let ns = self.text()
-      let oid = @hex.encode(self.take(12))
+      let oid = @base16.encode(self.take(12))
       Json::object({
         "$dbpointer": Json::object({
           "ns": Json::string(ns),
@@ -250,7 +251,9 @@ fn Reader::element(
       }
     }
     0x13 =>
-      Json::object({ "$decimal128": Json::string(@hex.encode(self.take(16))) })
+      Json::object({
+        "$decimal128": Json::string(@base16.encode(self.take(16))),
+      })
     0xFF => Json::object({ "$minKey": Json::boolean(true) })
     0x7F => Json::object({ "$maxKey": Json::boolean(true) })
     _ =>

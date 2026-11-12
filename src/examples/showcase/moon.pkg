@@ -8,5 +8,5 @@ import {
   "moonbitstack/moonjson/cbd",
   "moonbitstack/moonjson/jsonb/sqlite",
   "moonbitstack/moonjson/jsonb/pg",
-  "moonbitlang/core/encoding/hex",
+  "moonbitstack/moonbase/base16",
 }

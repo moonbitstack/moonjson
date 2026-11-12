@@ -20,8 +20,8 @@ test "scalar and empty vectors" {
   ]
   for pair in cases {
     let (tree, hex) = pair
-    assert_eq(@cbd.dump(tree), @hex.decode(hex[:]))
-    assert_eq(@cbd.load(@hex.decode(hex[:])[:]), tree)
+    assert_eq(@cbd.dump(tree), @base16.decode(hex[:]))
+    assert_eq(@cbd.load(@base16.decode(hex[:])[:]), tree)
   }
 }
 
@@ -30,7 +30,7 @@ test "scalar and empty vectors" {
 /// `name` = "John" and `age` = 30, its dictionary `name`, `age`.
 test "the specification example decodes" {
   let hex = "cbd1010002046e616d6503616765a1020160044a6f686e02401e"
-  let tree = @cbd.load(@hex.decode(hex[:])[:])
+  let tree = @cbd.load(@base16.decode(hex[:])[:])
   let want = Json::object(
     Map::from_array([
       ("name", Json::string("John")),
@@ -38,7 +38,7 @@ test "the specification example decodes" {
     ]),
   )
   assert_eq(tree, want)
-  assert_eq(@cbd.dump(want), @hex.decode(hex[:]))
+  assert_eq(@cbd.dump(want), @base16.decode(hex[:]))
 }
 
 ///|

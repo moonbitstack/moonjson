@@ -187,7 +187,7 @@ fn Reader::decimal(self : Reader, high : Int32) -> Json raise @moonjson.Refused 
 fn Reader::blob(self : Reader, high : Int32) -> Json raise @moonjson.Refused {
   let n = self.length(high)
   let bytes = self.take(n)
-  Json::object({ "$bytes": @hex.encode(bytes[:]) })
+  Json::object({ "$bytes": @base16.encode(bytes[:]) })
 }
 
 ///|
@@ -308,7 +308,7 @@ fn object(
   if members.length() == 1 {
     match members.get("$bytes") {
       Some(String(hex)) => {
-        let bytes = @hex.decode(hex[:]) catch {
+        let bytes = @base16.decode(hex[:]) catch {
           _ => raise @moonjson.Unwritable(why="\"$bytes\" wants lowercase hex")
         }
         head(buf, 6, bytes.length())

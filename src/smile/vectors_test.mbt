@@ -24,7 +24,7 @@ let decode_cases : Array[(String, String)] = [
 test "known bytes decode to the expected tree" {
   for row in decode_cases {
     let (hex, want) = row
-    let bytes = @hex.decode(hex[:])
+    let bytes = @base16.decode(hex[:])
     let tree = @smile.load(bytes[:])
     assert_eq(@json.dumps(tree, sort=true), want)
   }
@@ -59,7 +59,7 @@ test "known trees encode to the expected bytes" {
   for row in encode_cases {
     let (tree, want) = row
     let bytes = @smile.dump(tree)
-    assert_eq(@hex.encode(bytes[:]), want)
+    assert_eq(@base16.encode(bytes[:]), want)
   }
 }
 
@@ -104,7 +104,7 @@ test "round trip through bytes" {
 /// and comes back as the same object.
 test "a byte string survives as native binary" {
   let bytes = @smile.dump(@json.loads("{\"$bytes\":\"deadbeef\"}"))
-  assert_eq(@hex.encode(bytes[:]), "3a290a002404deadbeef00")
+  assert_eq(@base16.encode(bytes[:]), "3a290a002404deadbeef00")
   assert_eq(
     @json.dumps(@smile.load(bytes[:]), sort=true),
     "{\"$bytes\":\"deadbeef\"}",
@@ -115,13 +115,13 @@ test "a byte string survives as native binary" {
 /// A truncated document, a document with something after the terminator, and a
 /// document that nests past the limit are three different refusals.
 test "a document that is not one" {
-  let short = @hex.decode("3a290a0022")
+  let short = @base16.decode("3a290a0022")
   try @smile.load(short[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Short(_))
   } noraise {
     _ => fail("a truncated string was read")
   }
-  let two = @hex.decode("3a290a002d003a290a002d00")
+  let two = @base16.decode("3a290a002d003a290a002d00")
   try @smile.load(two[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Extra(_))
   } noraise {
@@ -134,7 +134,7 @@ test "a document that is not one" {
   }
   nest.write_string("39")
   nest.write_string("00")
-  let deep = @hex.decode(nest.to_string())
+  let deep = @base16.decode(nest.to_string())
   try @smile.load(deep[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Bad(..))
   } noraise {

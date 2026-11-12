@@ -102,7 +102,7 @@ let stable : Array[String] = [
 test "RFC 8949 appendix A" {
   for row in examples {
     let (hex, want) = row
-    let bytes = @hex.decode(hex[:])
+    let bytes = @base16.decode(hex[:])
     assert_eq(@json.dumps(@cbor.load(bytes[:])), want)
   }
 }
@@ -111,8 +111,8 @@ test "RFC 8949 appendix A" {
 /// Writing, byte for byte.
 test "the deterministic form is reproduced" {
   for hex in stable {
-    let bytes = @hex.decode(hex[:])
-    assert_eq(@hex.encode(@cbor.dump(@cbor.load(bytes[:]))[:]), hex)
+    let bytes = @base16.decode(hex[:])
+    assert_eq(@base16.encode(@cbor.dump(@cbor.load(bytes[:]))[:]), hex)
   }
 }
 
@@ -122,7 +122,7 @@ test "the deterministic form is reproduced" {
 test "a document with everything in it" {
   let hex = "a56161614161626142616361436164614461656145"
   assert_eq(
-    @json.dumps(@cbor.load(@hex.decode(hex)[:])),
+    @json.dumps(@cbor.load(@base16.decode(hex)[:])),
     "{\"a\":\"A\",\"b\":\"B\",\"c\":\"C\",\"d\":\"D\",\"e\":\"E\"}",
   )
 }
@@ -132,7 +132,7 @@ test "a document with everything in it" {
 /// through a format that has none.
 test "a byte string survives JSON" {
   let bytes = @cbor.dump(@json.loads("{\"$bytes\":\"deadbeef\"}"))
-  assert_eq(@hex.encode(bytes[:]), "44deadbeef")
+  assert_eq(@base16.encode(bytes[:]), "44deadbeef")
 }
 
 ///|
@@ -140,13 +140,13 @@ test "a byte string survives JSON" {
 /// document that nests past the limit are three different refusals, and none of
 /// them is a panic.
 test "a document that is not one" {
-  let short = @hex.decode("83")
+  let short = @base16.decode("83")
   try @cbor.load(short[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Short(_))
   } noraise {
     _ => fail("a truncated array was read")
   }
-  let two = @hex.decode("0001")
+  let two = @base16.decode("0001")
   try @cbor.load(two[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Extra(_))
   } noraise {
@@ -157,7 +157,7 @@ test "a document that is not one" {
     nest.write_string("81")
   }
   nest.write_string("00")
-  let deep = @hex.decode(nest.to_string())
+  let deep = @base16.decode(nest.to_string())
   try @cbor.load(deep[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Bad(..))
   } noraise {
@@ -170,9 +170,9 @@ test "a document that is not one" {
 /// holds it, and with `deterministic` off it is written as a double.
 test "the deterministic knob" {
   let tree = @json.loads("1.5")
-  assert_eq(@hex.encode(@cbor.dump(tree)[:]), "f93e00")
+  assert_eq(@base16.encode(@cbor.dump(tree)[:]), "f93e00")
   assert_eq(
-    @hex.encode(
+    @base16.encode(
       @cbor.dump(tree, policy={ ..@cbor.policy, deterministic: false, })[:],
     )[:],
     "fb3ff8000000000000",

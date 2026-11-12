@@ -62,12 +62,12 @@ fn main {
         let written = match which {
           "json" => @json.dumps(value)
           "pretty" => @json.dumps(value, indent=2)
-          "cbor" => @hex.encode(@cbor.dump(value)[:])
-          "cbd" => @hex.encode(@cbd.dump(value)[:])
-          "ubjson" => @hex.encode(@ubjson.dump(value)[:])
-          "smile" => @hex.encode(@smile.dump(value)[:])
-          "sqlite" => @hex.encode(@sqlite.dump(value)[:])
-          "pg" => @hex.encode(@pg.dump(value)[:])
+          "cbor" => @base16.encode(@cbor.dump(value)[:])
+          "cbd" => @base16.encode(@cbd.dump(value)[:])
+          "ubjson" => @base16.encode(@ubjson.dump(value)[:])
+          "smile" => @base16.encode(@smile.dump(value)[:])
+          "sqlite" => @base16.encode(@sqlite.dump(value)[:])
+          "pg" => @base16.encode(@pg.dump(value)[:])
           "ndjson" =>
             match value {
               Array(items) => @lines.dumps_all(items)

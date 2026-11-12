@@ -76,7 +76,7 @@ fn write_marker(
 ) -> Bool raise @moonjson.Refused {
   if members.length() == 1 {
     if members.get("$bytes") is Some(String(hex)) {
-      let bytes = @hex.decode(hex[:]) catch {
+      let bytes = @base16.decode(hex[:]) catch {
         _ => raise @moonjson.Unwritable(why="\"$bytes\" wants lowercase hex")
       }
       let len = bytes.length()

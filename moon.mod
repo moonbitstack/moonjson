@@ -56,4 +56,8 @@ keywords = [
 
 description = "JSON, its dialects and its binary encodings for MoonBit."
 
+import {
+  "moonbitstack/moonbase@0.4.5",
+}
+
 source = "src"

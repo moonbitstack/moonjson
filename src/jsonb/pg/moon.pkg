@@ -7,6 +7,6 @@ import {
   "moonbitstack/moonjson",
   "moonbitlang/core/double",
   "moonbitlang/core/string",
-  "moonbitlang/core/encoding/hex",
+  "moonbitstack/moonbase/base16",
   "moonbitlang/core/encoding/utf8",
 }

@@ -158,7 +158,7 @@ fn Reader::string(self : Reader) -> Json raise @moonjson.Refused {
 fn Reader::binary(self : Reader) -> Json raise @moonjson.Refused {
   let len = self.vint()
   let bytes = self.take(len)
-  Json::object({ "$bytes": Json::string(@hex.encode(bytes[:])) })
+  Json::object({ "$bytes": Json::string(@base16.encode(bytes[:])) })
 }
 
 ///|

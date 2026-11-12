@@ -159,7 +159,7 @@ fn Reader::bytes(self : Reader, info : Int32) -> Json raise @moonjson.Refused {
     let length = self.arg(info)
     out.write_bytes(self.take(length))
   }
-  Json::object({ "$bytes": @hex.encode(out.to_bytes()[:]) })
+  Json::object({ "$bytes": @base16.encode(out.to_bytes()[:]) })
 }
 
 ///|
@@ -301,7 +301,7 @@ fn Reader::tag(
     match held {
       Object(members) =>
         if members.get("$bytes") is Some(String(hex)) {
-          let magnitude = @hex.decode(hex[:]) catch {
+          let magnitude = @base16.decode(hex[:]) catch {
             _ => raise @moonjson.Bad(at=self.i, why="a bignum that is not hex")
           }
           let text = bytes_decimal(magnitude[:])

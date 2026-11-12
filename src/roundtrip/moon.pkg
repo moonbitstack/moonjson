@@ -27,5 +27,5 @@ import {
   "moonbitstack/moonjson/sink",
   "moonbitstack/moonjson/source",
   "moonbitstack/moonjson/pretty",
-  "moonbitlang/core/encoding/hex",
+  "moonbitstack/moonbase/base16",
 } for "test"

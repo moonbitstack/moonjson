@@ -140,7 +140,7 @@ fn Reader::binary(
   self : Reader,
   length : UInt64,
 ) -> Json raise @moonjson.Refused {
-  Json::object({ "$bytes": @hex.encode(self.take(length)) })
+  Json::object({ "$bytes": @base16.encode(self.take(length)) })
 }
 
 ///|
@@ -152,7 +152,7 @@ fn Reader::extension(
   length : UInt64,
   kind : UInt64,
 ) -> Json raise @moonjson.Refused {
-  let data = @hex.encode(self.take(length))
+  let data = @base16.encode(self.take(length))
   Json::object({
     "$ext": Json::number(kind.to_double()),
     "data": Json::string(data),

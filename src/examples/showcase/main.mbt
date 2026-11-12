@@ -10,8 +10,8 @@
 fn main raise {
   let doc = @json.loads("{\"name\":\"John\",\"age\":30}")
   println("json   " + @json.dumps(doc))
-  println("cbor   " + @hex.encode(@cbor.dump(doc)[:]))
-  println("cbd    " + @hex.encode(@cbd.dump(doc)[:]))
-  println("sqlite " + @hex.encode(@sqlite.dump(doc)[:]))
-  println("pg     " + @hex.encode(@pg.dump(doc)[:]))
+  println("cbor   " + @base16.encode(@cbor.dump(doc)[:]))
+  println("cbd    " + @base16.encode(@cbd.dump(doc)[:]))
+  println("sqlite " + @base16.encode(@sqlite.dump(doc)[:]))
+  println("pg     " + @base16.encode(@pg.dump(doc)[:]))
 }

@@ -140,7 +140,7 @@ test "the reference implementation's encodings, byte for byte" {
   assert_eq(vectors.length(), 32)
   for (text, encoded) in vectors {
     let value = @json.loads(text)
-    let bytes = @hex.decode(encoded[:])
+    let bytes = @base16.decode(encoded[:])
     assert_eq(@msgpack.dump(value), bytes)
   }
 }
@@ -149,7 +149,7 @@ test "the reference implementation's encodings, byte for byte" {
 test "and back to the same tree" {
   for (text, encoded) in vectors {
     let value = @json.loads(text)
-    let decoded = @msgpack.load(@hex.decode(encoded[:])[:])
+    let decoded = @msgpack.load(@base16.decode(encoded[:])[:])
     if !same(decoded, value) {
       fail("\{text} came back as \{@json.dumps(decoded)}")
     }

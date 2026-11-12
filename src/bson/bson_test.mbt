@@ -15,9 +15,9 @@ let examples : Array[(String, String)] = [
 test "the specification's examples" {
   for row in examples {
     let (hex, want) = row
-    let bytes = @hex.decode(hex[:])
+    let bytes = @base16.decode(hex[:])
     assert_eq(@json.dumps(@bson.load(bytes[:])), want)
-    assert_eq(@hex.encode(@bson.dump(@bson.load(bytes[:]))[:]), hex)
+    assert_eq(@base16.encode(@bson.dump(@bson.load(bytes[:]))[:]), hex)
   }
 }
 
@@ -60,7 +60,7 @@ test "a document is an object" {
 ///|
 /// The length in the header is checked against the terminators.
 test "a document whose length is not its own" {
-  let lying = @hex.decode("120000000268656c6c6f0006000000776f726c640000")
+  let lying = @base16.decode("120000000268656c6c6f0006000000776f726c640000")
   try @bson.load(lying[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Short(_) || e is @moonjson.Bad(..))
   } noraise {

@@ -88,7 +88,7 @@ test "the examples page outputs" {
   )
   let john = @json.loads("{\"name\":\"John\",\"age\":30}")
   assert_eq(
-    @hex.encode(@cbd.dump(john)[:]),
+    @base16.encode(@cbd.dump(john)[:]),
     "cbd1010002046e616d6503616765a1020160044a6f686e02401e",
   )
   assert_eq(@cbd.load(@cbd.dump(john)[:]), john)

@@ -6,7 +6,7 @@
 /// Read a hex string as UBJSON and render the tree as JSON, for a readable
 /// expectation.
 fn show(hex : String) -> String raise @moonjson.Refused {
-  let bytes = @hex.decode(hex[:]) catch {
+  let bytes = @base16.decode(hex[:]) catch {
     _ => raise @moonjson.Bad(at=0, why="bad hex in test")
   }
   @json.dumps(@ubjson.load(bytes[:]), sort=true)
@@ -44,29 +44,32 @@ test "known bytes read into a tree" {
 /// Known trees, written as the bytes this package produces — the simple form, no
 /// length prefixes.
 test "known trees write into bytes" {
-  assert_eq(@hex.encode(@ubjson.dump(Json::null())[:]), "5a")
-  assert_eq(@hex.encode(@ubjson.dump(Json::boolean(true))[:]), "54")
-  assert_eq(@hex.encode(@ubjson.dump(Json::boolean(false))[:]), "46")
+  assert_eq(@base16.encode(@ubjson.dump(Json::null())[:]), "5a")
+  assert_eq(@base16.encode(@ubjson.dump(Json::boolean(true))[:]), "54")
+  assert_eq(@base16.encode(@ubjson.dump(Json::boolean(false))[:]), "46")
   // the smallest width that holds the integer
-  assert_eq(@hex.encode(@ubjson.dump(Json::number(5.0, repr="5"))[:]), "6905")
   assert_eq(
-    @hex.encode(@ubjson.dump(Json::number(200.0, repr="200"))[:]),
+    @base16.encode(@ubjson.dump(Json::number(5.0, repr="5"))[:]),
+    "6905",
+  )
+  assert_eq(
+    @base16.encode(@ubjson.dump(Json::number(200.0, repr="200"))[:]),
     "4900c8",
   )
   // a float is a float even at an integral value
   assert_eq(
-    @hex.encode(@ubjson.dump(Json::number(1.5, repr="1.5"))[:]),
+    @base16.encode(@ubjson.dump(Json::number(1.5, repr="1.5"))[:]),
     "443ff8000000000000",
   )
   assert_eq(
-    @hex.encode(@ubjson.dump(Json::number(0.0, repr="0.0"))[:]),
+    @base16.encode(@ubjson.dump(Json::number(0.0, repr="0.0"))[:]),
     "440000000000000000",
   )
   // a string: S, then the length as the smallest int, then the bytes
-  assert_eq(@hex.encode(@ubjson.dump(Json::string("a"))[:]), "53690161")
+  assert_eq(@base16.encode(@ubjson.dump(Json::string("a"))[:]), "53690161")
   // containers open and close, every element marked
   assert_eq(
-    @hex.encode(
+    @base16.encode(
       @ubjson.dump(
         Json::array([Json::number(5.0, repr="5"), Json::number(6.0, repr="6")]),
       )[:],
@@ -74,13 +77,13 @@ test "known trees write into bytes" {
     "5b690569065d",
   )
   assert_eq(
-    @hex.encode(
+    @base16.encode(
       @ubjson.dump(Json::object({ "a": Json::number(1.0, repr="1") }))[:],
     ),
     "7b5369016169017d",
   )
-  assert_eq(@hex.encode(@ubjson.dump(Json::array([]))[:]), "5b5d")
-  assert_eq(@hex.encode(@ubjson.dump(Json::object(Map([])))), "7b7d")
+  assert_eq(@base16.encode(@ubjson.dump(Json::array([]))[:]), "5b5d")
+  assert_eq(@base16.encode(@ubjson.dump(Json::object(Map([])))), "7b7d")
 }
 
 ///|
@@ -88,7 +91,7 @@ test "known trees write into bytes" {
 /// of uint8, because UBJSON has no byte string of its own. Reading that array
 /// back yields a plain array — the mapping is one-way, by design.
 test "a byte string becomes an array of uint8" {
-  let bytes = @hex.encode(
+  let bytes = @base16.encode(
     @ubjson.dump(Json::object({ "$bytes": Json::string("0102") }))[:],
   )
   assert_eq(bytes, "5b550155025d")
@@ -100,19 +103,19 @@ test "a byte string becomes an array of uint8" {
 /// them is a panic.
 test "a document that is not one" {
   // a string that promises two bytes but has none
-  try @ubjson.load(@hex.decode("53690261")[:]) |> ignore catch {
+  try @ubjson.load(@base16.decode("53690261")[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Short(_))
   } noraise {
     _ => fail("a truncated string was read")
   }
   // two values where one was expected
-  try @ubjson.load(@hex.decode("5a54")[:]) |> ignore catch {
+  try @ubjson.load(@base16.decode("5a54")[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Extra(_))
   } noraise {
     _ => fail("two values were read as one")
   }
   // an unknown marker
-  try @ubjson.load(@hex.decode("00")[:]) |> ignore catch {
+  try @ubjson.load(@base16.decode("00")[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Bad(..))
   } noraise {
     _ => fail("an unknown marker was read")
@@ -126,7 +129,7 @@ test "a document that is not one" {
   for _ in 0..<502 {
     nest.write_string("5d")
   }
-  try @ubjson.load(@hex.decode(nest.to_string())[:]) |> ignore catch {
+  try @ubjson.load(@base16.decode(nest.to_string())[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Bad(..))
   } noraise {
     _ => fail("a document was read past the depth limit")

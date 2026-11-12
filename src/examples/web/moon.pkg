@@ -25,5 +25,5 @@ import {
   "moonbitstack/moonjson/smile",
   "moonbitstack/moonjson/jsonb/sqlite",
   "moonbitstack/moonjson/jsonb/pg",
-  "moonbitlang/core/encoding/hex",
+  "moonbitstack/moonbase/base16",
 }

@@ -16,8 +16,8 @@ test "scalar and empty vectors" {
   ]
   for pair in cases {
     let (tree, hex) = pair
-    assert_eq(@pg.dump(tree), @hex.decode(hex[:]))
-    assert_eq(@pg.load(@hex.decode(hex[:])[:]), tree)
+    assert_eq(@pg.dump(tree), @base16.decode(hex[:]))
+    assert_eq(@pg.load(@base16.decode(hex[:])[:]), tree)
   }
 }
 

@@ -11,5 +11,5 @@ import {
 }
 
 import {
-  "moonbitlang/core/encoding/hex",
+  "moonbitstack/moonbase/base16",
 } for "test"

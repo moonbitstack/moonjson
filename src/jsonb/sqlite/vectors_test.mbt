@@ -218,7 +218,7 @@ fn same(a : Json, b : Json) -> Bool {
 test "the reference encoding, byte for byte" {
   for (text, encoded) in vectors {
     let value = @json.loads(text)
-    let bytes = @hex.decode(encoded[:])
+    let bytes = @base16.decode(encoded[:])
     assert_eq(@sqlite.dump(value), bytes)
   }
 }
@@ -227,7 +227,7 @@ test "the reference encoding, byte for byte" {
 test "and back to the same tree" {
   for (text, encoded) in vectors {
     let value = @json.loads(text)
-    let decoded = @sqlite.load(@hex.decode(encoded[:])[:])
+    let decoded = @sqlite.load(@base16.decode(encoded[:])[:])
     if !same(decoded, value) {
       fail("\{text} came back as \{@json.dumps(decoded)}")
     }

@@ -123,7 +123,7 @@ fn Reader::value(self : Reader, depth : Int32) -> Json raise @moonjson.Refused {
       let width = tag - 0x0A
       let length = self.len_by_width(width)
       let bytes = self.take(length)
-      Json::object({ "$bytes": Json::string(@hex.encode(bytes[:])) })
+      Json::object({ "$bytes": Json::string(@base16.encode(bytes[:])) })
     }
     0x0E => self.array(depth)
     0x0F => self.object(depth)

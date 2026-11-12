@@ -112,7 +112,7 @@ fn object(
 ) -> Unit raise @moonjson.Refused {
   if members.length() == 1 {
     if members.get("$bytes") is Some(String(hex)) {
-      let bytes = @hex.decode(hex[:]) catch {
+      let bytes = @base16.decode(hex[:]) catch {
         _ => raise @moonjson.Unwritable(why="\"$bytes\" wants lowercase hex")
       }
       binary(buf, bytes)
@@ -125,7 +125,7 @@ fn object(
       kind == @double.trunc(kind) &&
       kind >= -128.0 &&
       kind <= 127.0 {
-      let bytes = @hex.decode(hex[:]) catch {
+      let bytes = @base16.decode(hex[:]) catch {
         _ => raise @moonjson.Unwritable(why="\"data\" wants lowercase hex")
       }
       extension(buf, kind.to_int(), bytes)

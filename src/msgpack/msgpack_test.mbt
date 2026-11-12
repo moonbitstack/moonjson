@@ -51,7 +51,7 @@ let stable : Array[String] = [
 test "the specification's examples" {
   for row in examples {
     let (hex, want) = row
-    let bytes = @hex.decode(hex[:])
+    let bytes = @base16.decode(hex[:])
     assert_eq(@json.dumps(@msgpack.load(bytes[:])), want)
   }
 }
@@ -61,9 +61,9 @@ test "the specification's examples" {
 test "the shortest form is reproduced" {
   let policy = @msgpack.Policy::new(floats=@msgpack.Shortest)
   for hex in stable {
-    let bytes = @hex.decode(hex[:])
+    let bytes = @base16.decode(hex[:])
     assert_eq(
-      @hex.encode(@msgpack.dump(@msgpack.load(bytes[:]), policy~)[:]),
+      @base16.encode(@msgpack.dump(@msgpack.load(bytes[:]), policy~)[:]),
       hex,
     )
   }
@@ -73,9 +73,9 @@ test "the shortest form is reproduced" {
 /// The float knob, both sides: a double by default, a single when asked for.
 test "the float knob" {
   let tree = @json.loads("0.5")
-  assert_eq(@hex.encode(@msgpack.dump(tree)[:]), "cb3fe0000000000000")
+  assert_eq(@base16.encode(@msgpack.dump(tree)[:]), "cb3fe0000000000000")
   assert_eq(
-    @hex.encode(
+    @base16.encode(
       @msgpack.dump(tree, policy=@msgpack.Policy::new(floats=Shortest))[:],
     ),
     "ca3f000000",
@@ -87,28 +87,28 @@ test "the float knob" {
 /// a MessagePack document reaches JSON and comes back.
 test "markers round trip" {
   let tree = @json.loads("{\"$bytes\":\"deadbeef\"}")
-  assert_eq(@hex.encode(@msgpack.dump(tree)[:]), "c404deadbeef")
+  assert_eq(@base16.encode(@msgpack.dump(tree)[:]), "c404deadbeef")
   let ext = @json.loads("{\"$ext\":-1,\"data\":\"00ff\"}")
-  assert_eq(@hex.encode(@msgpack.dump(ext)[:]), "c702ff00ff")
+  assert_eq(@base16.encode(@msgpack.dump(ext)[:]), "c702ff00ff")
 }
 
 ///|
 /// Nothing is guessed: a truncated document, a trailing byte and the one
 /// reserved head byte are three refusals.
 test "a document that is not one" {
-  let short = @hex.decode("93")
+  let short = @base16.decode("93")
   try @msgpack.load(short[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Short(_))
   } noraise {
     _ => fail("a truncated array was read")
   }
-  let two = @hex.decode("0001")
+  let two = @base16.decode("0001")
   try @msgpack.load(two[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Extra(_))
   } noraise {
     _ => fail("two values were read as one")
   }
-  let reserved = @hex.decode("c1")
+  let reserved = @base16.decode("c1")
   try @msgpack.load(reserved[:]) |> ignore catch {
     e => assert_true(e is @moonjson.Bad(..))
   } noraise {

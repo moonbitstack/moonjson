@@ -105,7 +105,7 @@ fn marked(
 ) -> Bool raise @moonjson.Refused {
   if members.length() == 1 {
     if members.get("$oid") is Some(String(hex)) {
-      let bytes = @hex.decode(hex[:]) catch {
+      let bytes = @base16.decode(hex[:]) catch {
         _ =>
           raise @moonjson.Unwritable(why="\"$oid\" wants twelve bytes of hex")
       }
@@ -118,7 +118,7 @@ fn marked(
       return true
     }
     if members.get("$bytes") is Some(String(hex)) {
-      let bytes = @hex.decode(hex[:]) catch {
+      let bytes = @base16.decode(hex[:]) catch {
         _ => raise @moonjson.Unwritable(why="\"$bytes\" wants lowercase hex")
       }
       buf.write_byte(0x05)
@@ -135,7 +135,7 @@ fn marked(
       }
       let bytes = match detail.get("data") {
         Some(String(hex)) =>
-          @hex.decode(hex[:]) catch {
+          @base16.decode(hex[:]) catch {
             _ =>
               raise @moonjson.Unwritable(why="\"$binary\" wants lowercase hex")
           }
@@ -169,7 +169,7 @@ fn marked(
       return true
     }
     if members.get("$decimal128") is Some(String(hex)) {
-      let bytes = @hex.decode(hex[:]) catch {
+      let bytes = @base16.decode(hex[:]) catch {
         _ =>
           raise @moonjson.Unwritable(
             why="\"$decimal128\" wants sixteen bytes of hex",
@@ -221,7 +221,7 @@ fn marked(
         Some(String(hex)) => hex
         _ => raise @moonjson.Unwritable(why="\"$dbpointer\" wants an \"oid\"")
       }
-      let bytes = @hex.decode(oid[:]) catch {
+      let bytes = @base16.decode(oid[:]) catch {
         _ =>
           raise @moonjson.Unwritable(
             why="\"$dbpointer\" wants twelve bytes of hex",

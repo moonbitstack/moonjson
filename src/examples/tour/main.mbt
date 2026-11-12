@@ -67,7 +67,7 @@ fn main raise {
   // The same tree as bytes, and back. Nothing about the document changed with
   // the notation.
   let body = @cbor.dump(plain)
-  println("cbor          -> \{@hex.encode(body[:])}")
+  println("cbor          -> \{@base16.encode(body[:])}")
   println("cbor == json  -> \{@cbor.load(body[:]) == plain}")
 
   // One document, one sequence of bytes — what a signature is taken over.

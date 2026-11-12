@@ -167,7 +167,7 @@ fn Reader::scalar_node(
     0x07 => {
       let n = self.uint32()
       let bytes = self.take(n)
-      Json::object({ "$bytes": @hex.encode(bytes[:]) })
+      Json::object({ "$bytes": @base16.encode(bytes[:]) })
     }
     _ =>
       raise @moonjson.Bad(
@@ -363,7 +363,7 @@ fn object(
   if members.length() == 1 {
     match members.get("$bytes") {
       Some(String(hex)) => {
-        let bytes = @hex.decode(hex[:]) catch {
+        let bytes = @base16.decode(hex[:]) catch {
           _ => raise @moonjson.Unwritable(why="\"$bytes\" wants lowercase hex")
         }
         let body = Buffer()

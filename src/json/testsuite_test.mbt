@@ -1905,7 +1905,7 @@ let transforming : Array[(String, String)] = [
 ///|
 /// The bytes a table row holds, as hex, because a source file is text.
 fn bytes_of(encoded : String) -> Bytes raise {
-  @hex.decode(encoded[:])
+  @base16.decode(encoded[:])
 }
 
 ///|

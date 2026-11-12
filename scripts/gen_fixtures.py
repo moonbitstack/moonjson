@@ -19,6 +19,7 @@ script fetches what it needs.
     python scripts/gen_fixtures.py json-testsuite
     python scripts/gen_fixtures.py jsonpath
     python scripts/gen_fixtures.py json5
+    python scripts/gen_fixtures.py json-patch
     python scripts/gen_fixtures.py binary
 
 The formats whose vectors are printed in a specification (CBOR's appendix A,
@@ -473,6 +474,53 @@ def random_value(rng, depth=0):
     return {key: random_value(rng, depth + 1) for key in keys[: rng.randint(0, 4)]}
 
 
+def json_patch(root):
+    """The json-patch-tests corpus: the conformance suite every JSON Patch
+    implementation is measured against, written by the people who wrote the
+    RFC's test cases down.
+
+    A case is a target, a patch, and either the document that results or the
+    word that the patch must be refused. The corpus also holds cases marked
+    `disabled`: those state a behaviour its own authors do not require — mostly
+    a patch that names a member that is not there — so they are left out rather
+    than counted on either side.
+    """
+    with open(os.path.join(root, "tests.json"), encoding="utf-8") as handle:
+        cases = json.load(handle)
+    rows = []
+    skipped = 0
+    for case in cases:
+        if case.get("disabled"):
+            skipped += 1
+            continue
+        name = case.get("comment") or "unnamed"
+        doc = json.dumps(case["doc"], ensure_ascii=False, separators=(",", ":"))
+        patch = moonbit_expr(
+            json.dumps(case["patch"], ensure_ascii=False, separators=(",", ":"))
+        )
+        if "error" in case:
+            rows.append(
+                "  (%s, %s, %s, \"\", false),"
+                % (moonbit_literal(name), moonbit_expr(doc), patch)
+            )
+        else:
+            expected = json.dumps(
+                case["expected"], ensure_ascii=False, separators=(",", ":"), sort_keys=True
+            )
+            rows.append(
+                "  (%s, %s, %s, %s, true),"
+                % (moonbit_literal(name), moonbit_expr(doc), patch,
+                   moonbit_expr(expected))
+            )
+    replace_between(
+        os.path.join(ROOT, "src", "patch", "corpus_test.mbt"),
+        "let cases : Array[(String, String, String, String, Bool)] = [",
+        "\n]\n",
+        "\n".join(rows),
+    )
+    print("json-patch: %d cases (%d disabled)" % (len(rows), skipped))
+
+
 def binary(seed=20261028, count=32):
     """Values chosen at random and encoded by the reference implementation of
     each binary format, so that the tests can ask two questions of every vector:
@@ -527,6 +575,7 @@ def main(argv):
         "json-testsuite",
         "jsonpath",
         "json5",
+        "json-patch",
         "binary",
     ):
         print(__doc__)

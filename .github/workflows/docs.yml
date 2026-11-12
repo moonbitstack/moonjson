@@ -51,11 +51,14 @@ jobs:
 
       # The showcase runs the library itself: compile it with the JavaScript
       # backend and copy the bundle beside the page. The bundle is a build
-      # product and is not committed.
+      # product and is not committed. The workspace decides where a build lands,
+      # so the bundle is looked for rather than spelled out.
       - name: compile the library to JavaScript for the showcase
         run: |
           moon build --target js --release src/examples/web
-          cp _build/js/release/build/examples/web/web.js docs/assets/moonjson.js
+          bundle="$(find _build/js/release/build -path '*examples/web/web.js' -print -quit)"
+          test -n "$bundle"
+          cp "$bundle" docs/assets/moonjson.js
 
       - uses: actions/configure-pages@v6
         with:

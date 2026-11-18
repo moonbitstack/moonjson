@@ -1,6 +1,6 @@
 name = "moonbitstack/moonjson"
 
-version = "0.5.0"
+version = "0.5.1"
 
 readme = "README.md"
 
@@ -57,8 +57,8 @@ keywords = [
 description = "JSON, its dialects and its binary encodings for MoonBit."
 
 import {
-  "moonbitstack/moonbase@0.5.0",
-  "moonbitstack/moonucd@0.1.4",
+  "moonbitstack/moonbase@0.5.1",
+  "moonbitstack/moonucd@0.2.1",
 }
 
 source = "src"
